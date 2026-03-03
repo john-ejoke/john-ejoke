@@ -1,6 +1,10 @@
 # Hello I'm John Ejoke 👋
 ### SOC Analyst | Cloud Security Engineer
 
+![Certification](https://img.shields.io/badge/Certification-ISC2--CC-blue?style=for-the-badge&logo=isc2&logoColor=white)
+![Specialization](https://img.shields.io/badge/Specialization-SOC%20Operations-red?style=for-the-badge&logo=googlecloud)
+![Cloud](https://img.shields.io/badge/Cloud-AWS%20%26%20Azure-orange?style=for-the-badge&logo=amazon-aws)
+
 ---
 
 ## 🛡️ Professional Profile
@@ -15,11 +19,11 @@ My experience includes **Incident Response**, **SIEM Engineering (Splunk & Wazuh
 
 | Domain | Description |
 | :--- | :--- |
-| [Cloud Security](./Cloud_Security/) | Cloud infrastructure hardening and secure deployments (AWS/Azure) |
-| [Infrastructure Engineering](./Infrastructure_Engineering/) | Automating secure and repeatable infrastructure setups |
-| [Malware Analysis](./Malware_Analysis/) | Malware analysis, reverse engineering, and threat intelligence |
-| [SOC Operations](./SOC_Operations/) | SIEM monitoring, threat detection, and incident response |
-| [Vulnerability Management](./Vulnerability_Management/) | Vulnerability scanning, risk assessment, and remediation |
+| **[Cloud Security](./Cloud_Security/)** | Cloud infrastructure hardening and secure deployments (AWS/Azure) |
+| **[Infrastructure Engineering](./Infrastructure_Engineering/)** | Automating secure and repeatable infrastructure setups |
+| **[Malware Analysis](./Malware_Analysis/)** | Malware analysis, reverse engineering, and threat intelligence |
+| **[SOC Operations](./SOC_Operations/)** | SIEM monitoring, threat detection, and incident response |
+| **[Vulnerability Management](./Vulnerability_Management/)** | Vulnerability scanning, risk assessment, and remediation |
 
 ---
 
@@ -37,6 +41,10 @@ My experience includes **Incident Response**, **SIEM Engineering (Splunk & Wazuh
 ---
 
 ## 📬 Connect With Me
-**JOHN EJOKE, CC** **Remote | UTC+1 | +234-8134764753** [LinkedIn](in/john-ejoke) | [Email](mailto:ejoke.john4socanalyst@outlook.com)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/john-ejoke)
+[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:ejoke.john4socanalyst@outlook.com)
+[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/ejokejohn)
+
+**JOHN EJOKE, CC** **Remote | UTC+1 | +234-8134764753**
 
 ---
