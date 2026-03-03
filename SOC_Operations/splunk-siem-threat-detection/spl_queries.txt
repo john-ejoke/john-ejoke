@@ -1,1 +1,87 @@
+SPL QUERIES - SIEM Threat Detection with Splunk Cloud
+Author: Ejoke John | Cybersecurity Analyst
+=======================================================
 
+
+1. DATA VALIDATION
+   Confirm log data was ingested and searchable
+
+index=main "Failed password"
+
+
+2. EXTRACT SOURCE IPs AND RANK BY FREQUENCY
+   Filter to IPs with more than 10 failed attempts
+
+index=main "Failed password"
+| rex "(?<src_ip>\d{1,3}(?:\.\d{1,3}){3})"
+| stats count by src_ip
+| where count > 10
+
+
+3. CHECK FOR SUCCESSFUL ROOT LOGINS
+   Result in this investigation: zero
+
+index=* "Accepted password for root"
+| rex "from\s+(?<src_ip>\d{1,3}(\.\d{1,3}){3})"
+| stats dc(src_ip) AS unique_root_ips
+
+
+4. CORRELATE IPs WITH TARGETED USERNAMES
+
+index=main "Failed password"
+| stats count by src_ip, user
+
+
+5. COMPARE FAILED VS SUCCESSFUL ROOT LOGINS
+
+index=* ("Failed password for root" OR "Accepted password for root")
+| stats count by src_ip, user
+
+
+6. DISCONNECT EVENTS DASHBOARD QUERY
+   Returned 26 matching events
+
+source="openssh_log.csv" host="DESKTOP-GB191B6" index=*
+Status="Received disconnect from 112.95.230.3: 11: Bye Bye [preauth]"
+
+
+7. HIGH-FREQUENCY OFFENDER DASHBOARD QUERY
+
+index=main "Failed password"
+| rex "(?<src_ip>\d{1,3}(?:\.\d{1,3}){3})"
+| stats count by src_ip
+| where count > 10
+
+
+8. SCHEDULED ALERT BASE QUERY
+   Trigger: count > 5 | Cron: 0 6 * * 1
+
+index=main "Failed password"
+| rex "(?<src_ip>\d{1,3}(?:\.\d{1,3}){3})"
+| stats count by src_ip
+| where count > 5
+
+
+=======================================================
+FIELD EXTRACTION CONFIGURATION
+=======================================================
+
+Name:             src_ip
+Destination App:  search
+Apply To:         sourcetype=csv
+Type:             Inline
+Regex:            (?<src_ip>\d{1,3}(?:\.\d{1,3}){3})
+
+
+=======================================================
+NOTES
+=======================================================
+
+All queries run against index=main unless specified.
+Log source: openssh_log.csv (sourcetype=csv)
+Regex extracts standard IPv4 addresses from raw log text.
+Threshold of 10 used for high-frequency IP detection.
+Threshold of 5 used for the scheduled alert trigger.
+Zero successful root logins confirmed across all queries.
+
+=======================================================
