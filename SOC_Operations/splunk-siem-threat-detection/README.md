@@ -146,10 +146,6 @@ Running inline regex in every query works but it is inefficient. I created a per
 
 ### Saving the Extraction
 
-![Field Extraction Save Dialog](screenshots/16_field_extraction_save.PNG)
-
-### Extraction Confirmed Active
-
 ![Field Extraction Confirmed](screenshots/17_field_extraction_confirmed.PNG)
 
 | Setting | Value |
@@ -159,6 +155,8 @@ Running inline regex in every query works but it is inefficient. I created a per
 | Apply To | sourcetype = csv |
 | Type | Inline |
 | Extraction | `rex "(?<src_ip>\d{1,3}(?:\.\d{1,3}){3})"` |
+
+### Extraction Confirmed Active
 
 After saving, I validated it by running a count query and confirming the extracted IPs matched raw event frequency exactly.
 
