@@ -4,24 +4,21 @@
 **Author:** Ejoke John | Cybersecurity Analyst
 **Platform:** Splunk Cloud | **Language:** SPL | **Threat Intel:** VirusTotal, AbuseIPDB, WHOIS
 
-
 ## What This Project Is About
 
 I wanted to go beyond theory and actually operate a SIEM platform the way a SOC analyst would on the job. So I took a real OpenSSH authentication log, ingested it into Splunk Cloud, and worked through the full investigation cycle: setting up the environment, hunting for brute-force patterns with SPL queries, building dashboards, configuring automated alerts, and validating suspicious IPs against external threat intelligence sources.
 
 This is a full walkthrough of everything I did, why I did it, and what I found.
 
-
 ## Environment
 
 | Component | Details |
-|-----------|---------|
+|-----------|----------|
 | **Platform** | Splunk Cloud |
 | **Log Source** | OpenSSH authentication log (`openssh_log.csv`) |
 | **Query Language** | SPL (Splunk Processing Language) |
 | **Index** | main |
 | **Threat Intel Tools** | VirusTotal, AbuseIPDB, WHOIS |
-
 
 ## 🔧 Phase 1: Setting Up the Splunk Environment
 
@@ -29,18 +26,25 @@ Before touching any log data, I needed the workspace configured properly.
 
 ### User Accounts and Role Assignment
 
-I created analyst accounts and assigned roles based on the principle of least privilege each user only got access to what their role actually required. Roles assigned ranged from standard `user` to `power` and `admin`. I also enforced a forced password change on first login for every new account, which is a basic but important hygiene step.
+I created analyst accounts and assigned roles based on the principle of least privilege, meaning each user only got access to what their role actually required. Roles ranged from standard `user` to `power` and `admin`. I also enforced a forced password change on first login for every new account.
+
+![Splunk User Management.](screenshots/01_splunk_user_management.png)
+
+### Splunk Cloud Login
+
+![Splunk Login](screenshots/02_splunk_login.png)
 
 ### Timezone Configuration
 
-I set the default system timezone to WAT (West Africa Time). Splunk handles this gracefully for users in other regions by falling back to their browser or system timezone automatically, but having a consistent default matters when you are correlating event timestamps across multiple analysts.
-
+I set the default system timezone to WAT (West Africa Time). Splunk handles this gracefully for users in other regions by falling back to their browser or system timezone, but having a consistent default matters when correlating event timestamps across multiple analysts.
 
 ## 📥 Phase 2: Log Ingestion and Validation
 
 ### Uploading the Log File
 
 I uploaded `openssh_log.csv` through the Add Data workflow in Splunk Cloud, configured the source type as `csv` to ensure correct field parsing, and indexed everything under `main` for centralized querying.
+
+![Log Ingestion Success](screenshots/04_log_ingestion_success.png)
 
 ### Verifying Data Integrity
 
@@ -52,7 +56,6 @@ Before writing a single detection query, I verified the data was clean:
 
 This step matters because bad ingestion means bad analysis. I needed confidence the data was reliable before drawing any conclusions from it.
 
-
 ## 🔎 Phase 3: Hunting for Brute-Force Activity
 
 ### Starting Broad: How Many Failed Logins?
@@ -62,6 +65,8 @@ index=main "Failed password"
 ```
 
 **Result: 520 failed login events.** That is not noise. That is a pattern worth investigating.
+
+![520 Failed Login Events](screenshots/05_failed_login_520_events.png)
 
 ### Extracting Source IPs and Ranking by Frequency
 
@@ -74,7 +79,7 @@ index=main "Failed password"
 | where count > 10
 ```
 
-The results were clear:
+![src_ip Frequency Table](screenshots/08_src_ip_frequency_table.png)
 
 | IP Address | Failed Attempts | Origin |
 |------------|----------------|--------|
@@ -85,7 +90,35 @@ The results were clear:
 | 5.188.10.180 | 18 | Russia, Petersburg Internet Network |
 | 185.190.58.151 | 17 | Unknown origin |
 
-286 attempts from a single IP is not manual. That is an automated brute-force script running against a target.
+286 attempts from a single IP is not manual. That is an automated brute-force script.
+
+### Brute-Force Pattern: Sequential Ports
+
+Looking at the raw events from `183.62.140.253` confirmed sequential port progression (33665, 34100, 34642, 35101), a clear sign of automated tooling rather than a human operator.
+
+![Sequential Port Brute-Force](screenshots/07_bruteforce_sequential_ports.png)
+
+### What Accounts Were Being Targeted?
+
+I correlated each attacking IP with the usernames it was trying to understand the targeting strategy.
+
+`185.190.58.151` targeting `admin` and `api`:
+
+![185.190.58.151 Targeting Admin and API](screenshots/10_failed_logins_ip_185_190.png)
+
+`103.99.0.122` cycling through user, guest, test, cisco accounts:
+
+![103.99.0.122 Dictionary Attack](screenshots/11_failed_logins_ip_103_99.png)
+
+`5.188.10.180` probing guest, ftp, and default accounts:
+
+![5.188.10.180 Default Account Probing](screenshots/12_failed_logins_ip_5_188.png)
+
+`187.141.143.180` targeting multiple usernames:
+
+![187.141.143.180 Failed Logins](screenshots/09_failed_logins_ip_123_235.png)
+
+This is dictionary-based credential stuffing. Attackers were cycling through the most common default account names on Linux systems.
 
 ### Did Any of Them Get In?
 
@@ -97,37 +130,27 @@ index=* "Accepted password for root"
 | stats dc(src_ip) AS unique_root_ips
 ```
 
+![Root Login Correlation Query](screenshots/13_root_login_correlation.png)
+
+![Zero Successful Root Logins](screenshots/14_zero_successful_root_logins.png)
+
 **Result: zero successful root logins.** Every attempt failed. The system held.
-
-For completeness I also filtered for all successful logons on the account and found **2,397 Event ID 4624 equivalents**. That volume warranted flagging as potentially suspicious could indicate automated session behavior or a compromised session being actively used but no unauthorized root access was confirmed.
-
-### What Accounts Were Being Targeted?
-
-I correlated each attacking IP with the usernames it was trying:
-
-```spl
-index=main "Failed password"
-| stats count by src_ip, user
-```
-
-The targeting was deliberate:
-
-- `183.62.140.253` went almost exclusively after `root`
-- `185.190.58.151` cycled through `admin` and `api`
-- `5.188.10.180` probed `guest`, `ftp`, and `default`
-
-This is dictionary-based credential stuffing. Attackers were not guessing randomly they were cycling through the most common default account names on Linux systems.
-
-### Login Pattern Analysis
-
-Looking at the sequential port numbers used across attempts (33665, 34100, 34642, 35101) confirmed this was systematic scanning driven by an automated tool, not a human operator manually trying passwords.
-
 
 ## 🧩 Phase 4: Building the src_ip Field Extraction
 
-Running inline regex in every query works, but it is inefficient. I created a persistent field extraction so `src_ip` would be available as a clean, structured field across all searches automatically.
+Running inline regex in every query works but it is inefficient. I created a persistent field extraction so `src_ip` would always be available as a structured field across all searches automatically.
 
-**Configuration:**
+### Configuring the Extraction
+
+![Field Extraction Configuration Form](screenshots/15_field_extraction_config.png)
+
+### Saving the Extraction
+
+![Field Extraction Save Dialog](screenshots/16_field_extraction_save.png)
+
+### Extraction Confirmed Active
+
+![Field Extraction Confirmed](screenshots/17_field_extraction_confirmed.png)
 
 | Setting | Value |
 |---------|-------|
@@ -137,29 +160,28 @@ Running inline regex in every query works, but it is inefficient. I created a pe
 | Type | Inline |
 | Extraction | `rex "(?<src_ip>\d{1,3}(?:\.\d{1,3}){3})"` |
 
-After saving, I validated it by running a count query and confirming the extracted IPs matched raw event frequency exactly. From this point forward, every query referencing `src_ip` used the structured field rather than re-extracting on the fly.
-
+After saving, I validated it by running a count query and confirming the extracted IPs matched raw event frequency exactly.
 
 ## 📊 Phase 5: Dashboards and Alerts
 
-### Dashboard 1: Disconnect Events
+### Dashboard: Disconnect Events
 
-I built a dashboard panel around a specific preauth disconnect pattern from `112.95.230.3`:
+I built a dashboard panel around a specific preauth disconnect pattern from `112.95.230.3`. A `[preauth]` disconnect means the connection dropped before any credentials were exchanged, often a sign of automated port scanning before a brute-force run.
 
 ```spl
 source="openssh_log.csv" host="DESKTOP-GB191B6" index=*
 Status="Received disconnect from 112.95.230.3: 11: Bye Bye [preauth]"
 ```
 
-This returned **26 events** visualized as a timeline. A `[preauth]` disconnect means the connection was dropped before any credentials were exchanged often a sign of automated port scanning or connection testing before a brute-force run.
+This returned **26 events** visualized as a timeline.
 
-### Dashboard 2: High-Frequency Offending IPs
-
-The second panel used the filtered count query to display the top attacking IPs live, giving any analyst opening the dashboard an immediate view of the current threat landscape without running a query manually.
+![Disconnect Events Dashboard](screenshots/18_disconnect_events_dashboard.png)
 
 ### Scheduled Alert Configuration
 
-I configured a scheduled alert to trigger automatically when brute-force thresholds were crossed:
+I configured a scheduled alert to trigger automatically when brute-force thresholds were crossed.
+
+![Alert Configuration](screenshots/19_alert_configuration.png)
 
 | Setting | Value |
 |---------|-------|
@@ -168,10 +190,12 @@ I configured a scheduled alert to trigger automatically when brute-force thresho
 | Alert Type | Scheduled |
 | Schedule | Cron: `0 6 * * 1` |
 | Expiry | 24 hours |
-| Description | These IPs might be trying to brute force into the system |
 
-I added recipient email addresses and confirmed delivery the alert fired correctly and the email arrived from `alerts@splunk` with the correct title and a direct link to the results.
+### Alert Email Delivery Confirmed
 
+I added all recipient email addresses and verified the alert actually fired by checking the incoming email from Splunk.
+
+![Alert Email Delivery](screenshots/21_alert_email_delivery.png)
 
 ## 🌐 Phase 6: Threat Intelligence Verification
 
@@ -179,24 +203,35 @@ Splunk tells you what happened in your logs. External threat intel tells you wha
 
 ### AbuseIPDB Results
 
-| IP Address | Reports | Abuse Confidence | Notes |
-|------------|---------|-----------------|-------|
-| 187.141.143.180 | 935 | 0% | High noise, low signal possible false positives |
-| 103.99.0.122 | 1 | 0% | Minimal history |
-| 112.95.230.3 | Not found | N/A | No prior reports but active in logs |
-| 5.188.10.180 | Not found | N/A | Data center IP, commonly used for automated attacks |
-| 185.190.58.151 | Not found | N/A | Actively targeting admin and api accounts |
+`187.141.143.180` (Mexico, 935 reports, 0% confidence):
+
+![AbuseIPDB 187.141.143.180](screenshots/22_abuseipdb_187_141.png)
+
+`5.188.10.180` (Russia, not found, data center):
+
+![AbuseIPDB 5.188.10.180](screenshots/23_abuseipdb_5_188.png)
+
+`103.99.0.122` (Vietnam, 1 report, 0% confidence):
+
+![AbuseIPDB 103.99.0.122](screenshots/24_abuseipdb_103_99.png)
+
+`112.95.230.3` (China Unicom, not found in database):
+
+![AbuseIPDB 112.95.230.3](screenshots/25_abuseipdb_112_95_a.png)
 
 High report counts with 0% confidence do not mean an IP is clean. It means the community has not reached consensus. I treated low confidence as inconclusive, not exculpatory.
 
 ### VirusTotal
 
-`183.62.140.253` was flagged by **Xcitium Verdict Cloud** as malware-related. 94 other vendors marked it clean. One flag out of 95 is a weak signal in isolation, but combined with 286 failed login attempts from the same IP, I classified it as high-risk. The log behavior is the corroborating evidence.
+`183.62.140.253` was flagged by Xcitium Verdict Cloud as malware-related while 94 other vendors marked it clean. One flag out of 95 is a weak signal in isolation, but combined with 286 failed login attempts from that same IP, I classified it as high-risk.
+
+![VirusTotal 183.62.140.253 Malware Flag](screenshots/27_virustotal_183_62_malware.png)
 
 ### WHOIS
 
-WHOIS confirmed `183.62.140.253` is registered to ChinaNet Guangdong with abuse contacts listed. That makes it traceable and reportable directly to the ISP if escalation is needed.
+WHOIS confirmed `183.62.140.253` belongs to ChinaNet Guangdong with abuse contacts listed, making it traceable and reportable directly to the ISP if escalation is needed.
 
+![WHOIS 183.62.140.253](screenshots/28_whois_183_62.png)
 
 ## 🧠 Threat Classification Summary
 
@@ -207,7 +242,6 @@ WHOIS confirmed `183.62.140.253` is registered to ChinaNet Guangdong with abuse 
 | Low-confidence noise | High AbuseIPDB reports but 0% abuse confidence | 187.141.143.180 |
 | Malware-associated IP | Vendor flag corroborated by brute-force log volume | 183.62.140.253 |
 | Prevented intrusion | Zero successful root logins across all observed IPs | All IPs above |
-
 
 ## 🛠️ Recommendations
 
@@ -227,7 +261,6 @@ WHOIS confirmed `183.62.140.253` is registered to ChinaNet Guangdong with abuse 
 - Automate IP reputation enrichment via AbuseIPDB or AlienVault OTX lookup tables in Splunk
 - Replace static count thresholds with behavioral baselines that flag deviations from normal patterns
 
-
 ## 💡 Skills Demonstrated
 
 - Splunk Cloud administration: user management, role assignment, timezone configuration
@@ -237,7 +270,6 @@ WHOIS confirmed `183.62.140.253` is registered to ChinaNet Guangdong with abuse 
 - Dashboard creation and scheduled alert configuration with email delivery verification
 - External threat intelligence cross-referencing using VirusTotal, AbuseIPDB, and WHOIS
 - Threat classification and structured security recommendation writing
-
 
 ## ✅ Takeaways
 
@@ -250,6 +282,5 @@ The full chain matters. Ingesting data is step one. The real work is knowing whi
 - [ ] Build MITRE ATT&CK-mapped correlation searches in Splunk
 - [ ] Automate IP reputation enrichment directly into the Splunk pipeline via lookup tables
 
-
 *See `EXECUTIVE_REPORT.md` for the business-facing summary of this investigation.*
-*See `spl_queries.txt` for all SPL queries used in this project.*
+*See `spl_queries.md` for all SPL queries used in this project.*
