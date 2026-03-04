@@ -36,31 +36,8 @@ This is that pipeline.
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    VMware Workstation (Host-Only Network)           │
-│                                                                     │
-│  ┌──────────────────┐      ┌──────────────────┐                    │
-│  │   SOC-SIEM       │      │   SOC-Manager    │                    │
-│  │  Ubuntu Desktop  │◄─────│  Ubuntu Server   │                    │
-│  │  Splunk Ent.     │      │  Wazuh Manager   │                    │
-│  │  192.168.80.10   │      │  192.168.80.20   │                    │
-│  └──────────────────┘      └────────┬─────────┘                    │
-│           ▲                         │ Webhook (Level 10+)          │
-│           │                         ▼                               │
-│  ┌──────────────────┐      ┌─────────────────────┐                 │
-│  │   SOC-Target     │      │   Tines Cloud SOAR  │                 │
-│  │   Windows 10     │      │   (Orchestrator)    │                 │
-│  │  Sysmon + Wazuh  │      │   Email Alert       │                 │
-│  │  + Splunk UF     │      └─────────────────────┘                 │
-│  │  192.168.80.30   │                                               │
-│  └──────────────────┘                                               │
-│                                                                     │
-│  ┌──────────────────┐      ┌──────────────────┐                    │
-│  │   SOC-Attacker   │      │   Qualys         │                    │
-│  │   Kali Linux     │      │   Vuln Scanner   │                    │
-│  │  192.168.80.40   │      │  192.168.80.50   │                    │
-│  └──────────────────┘      └──────────────────┘                    │
-└─────────────────────────────────────────────────────────────────────┘
+
+![SOC Architecture](screenshots/00-soc-architecture.png) 
 
 DATA FLOW:
 Windows/Linux Endpoints
