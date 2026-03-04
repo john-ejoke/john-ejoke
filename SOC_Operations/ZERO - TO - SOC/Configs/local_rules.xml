@@ -1,0 +1,19 @@
+<group name="local,syslog,sshd,windows,">
+
+  <rule id="100001" level="5">
+    <if_sid>5716</if_sid>
+    <srcip>1.1.1.1</srcip>
+    <description>sshd: authentication failed from IP 1.1.1.1.</description>
+    <group>authentication_failed,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+  </rule>
+
+  <rule id="100002" level="12">
+    <if_sid>60000</if_sid>
+    <field name="win.system.eventID">1102</field>
+    <description>CRITICAL: Security Log Cleared (Event ID 1102)</description>
+    <mitre>
+      <id>T1070.001</id>
+    </mitre>
+  </rule>
+
+</group>
