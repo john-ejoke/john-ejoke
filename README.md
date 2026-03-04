@@ -16,13 +16,13 @@ My experience includes **Incident Response**, **SIEM Engineering (Splunk & Wazuh
 
 ## 📂 Domains & Project Folders
 *Click a folder to see **projects inside each domain**.*
-
 | Domain | Description |
 | :--- | :--- |
 | **[Cloud Security](./Cloud_Security/)** | Cloud infrastructure hardening and secure deployments (AWS/Azure) |
 | **[Infrastructure Engineering](./Infrastructure_Engineering/)** | Automating secure and repeatable infrastructure setups |
 | **[Malware Analysis](./Malware_Analysis/)** | Malware analysis, reverse engineering, and threat intelligence |
 | **[SOC Operations](./SOC_Operations/)** | SIEM monitoring, threat detection, and incident response |
+| **[Threat Intelligence](./Threat_Intelligence/)** | Honeypot deployment, attack analysis, and proactive threat hunting |
 | **[Vulnerability Management](./Vulnerability_Management/)** | Vulnerability scanning, risk assessment, and remediation |
 
 ---
