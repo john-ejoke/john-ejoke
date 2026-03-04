@@ -35,9 +35,9 @@ This is that pipeline.
 
 ## Architecture Overview
 
-```
-
 ![SOC Architecture](screenshots/00-soc-architecture.png) 
+
+```
 
 DATA FLOW:
 Windows/Linux Endpoints
