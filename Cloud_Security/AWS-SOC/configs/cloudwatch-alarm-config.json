@@ -1,0 +1,44 @@
+{
+  "AlarmName": "SOC-Brute-Force-Alert",
+  "AlarmDescription": "Alarm triggers when 3 or more failed SSH login attempts are detected within a 1-minute window. Monitors the FailedPasswordCount metric derived from /var/log/auth.log via CloudWatch Agent.",
+  "ActionsEnabled": true,
+  "AlarmActions": [
+    "arn:aws:sns:eu-north-1:338320348433:SOC-Alert-Notification"
+  ],
+  "OKActions": [
+    "arn:aws:sns:eu-north-1:338320348433:SOC-Alert-Notification"
+  ],
+  "MetricName": "FailedPasswordCount",
+  "Namespace": "SOC/Authentication",
+  "Statistic": "Sum",
+  "Period": 60,
+  "EvaluationPeriods": 1,
+  "DatapointsToAlarm": 1,
+  "Threshold": 3.0,
+  "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+  "TreatMissingData": "notBreaching",
+  "Dimensions": [
+    {
+      "Name": "LogGroupName",
+      "Value": "SOC-Auth-Logs"
+    }
+  ]
+}
+
+# AWS CLI Command to create this alarm:
+#
+# aws cloudwatch put-metric-alarm \
+#   --alarm-name "SOC-Brute-Force-Alert" \
+#   --alarm-description "Triggers on 3+ failed SSH logins in 1 minute" \
+#   --actions-enabled \
+#   --alarm-actions "arn:aws:sns:eu-north-1:<ACCOUNT_ID>:SOC-Alert-Notification" \
+#   --metric-name "FailedPasswordCount" \
+#   --namespace "SOC/Authentication" \
+#   --statistic Sum \
+#   --period 60 \
+#   --evaluation-periods 1 \
+#   --datapoints-to-alarm 1 \
+#   --threshold 3 \
+#   --comparison-operator GreaterThanOrEqualToThreshold \
+#   --treat-missing-data notBreaching \
+#   --region eu-north-1
