@@ -7,13 +7,17 @@
 
 ---
 
-## What This Project Is
+## What I Built and Why You Should Care
 
-Most people spin up an EC2 instance, expose it to the internet, and call it a cloud project. I did the opposite. I started from a deliberately vulnerable default AWS environment and engineered it into a production-grade SOC pipeline with identity hardening, multi-layer telemetry, automated alerting, and live-fire threat validation.
+If you are reviewing my portfolio and you want to see whether I can think like an engineer and not just follow a tutorial, this is the project to read.
 
-This is not a tutorial follow-along. Every decision in this project has an engineering reason behind it, and I document those reasons throughout this README the same way I would justify a design choice to a security team lead.
+I built and engineered a cloud-native Security Operations Centre pipeline entirely from scratch on AWS. Not a sandbox. Not a guided lab. A real internet-facing environment with real attacker traffic, real detection logic, and real alerts firing to my inbox.
 
-By the end of this project, the environment could detect a brute-force SSH attack, attribute the source IP using OSINT, and push a formatted alert to my inbox in under 60 seconds. That is the bar I set for myself, and this README shows exactly how I hit it.
+The scenario was simple: take a default AWS account with no controls and harden it into a production-grade SOC. That means identity hardening, a tamper-proof audit trail, network telemetry, host-level log streaming, automated threat detection, and an alert pipeline that fires in under 60 seconds from the moment an attack begins.
+
+Every decision I made in this project has an engineering reason behind it. I document those reasons throughout this README the same way I would walk a security team lead through a design review. If you want to understand not just what I built but why I built it the way I did, keep reading.
+
+**The result:** A live environment that detected a brute-force SSH attack, captured it at the network layer and the host layer simultaneously, attributed the source IP using OSINT, and pushed a formatted alert to my inbox in under 60 seconds. Zero false negatives. 100% telemetry accuracy.
 
 ---
 
@@ -69,6 +73,8 @@ The full data flow looks like this:
 [CloudTrail: All API Calls] --> [S3 Evidence Locker + Digest Files]
                             --> [CloudWatch Logs: aws-cloudtrail-logs]
 ```
+
+![AWS-SOC full architecture diagram showing Security Sources, Collection and Logging, SIEM and Analysis, Detection Engineering, Incident Response, and Management and Governance layers](screenshots/51-aws-soc-monitoring-pipeline-architecture.png)
 
 ---
 
@@ -351,7 +357,7 @@ Phase 2 validation also succeeded. The agent service was registered as a systemd
 
 ![CloudWatch Agent both validation phases succeeded, systemd symlink created, service running](screenshots/39-cloudwatch-agent-service-started-symlink-created.png)
 
-### Step 3.6: Pipeline Validation in CloudWatch
+### Step 3.6: Telemetry Confirmed
 
 In the CloudWatch console I verified three things in sequence. First, the `SOC-Auth-Logs` log group was created automatically by the agent. The unified log store now shows three groups: `SOC-Auth-Logs`, `VPC-Flow-Logs`, and `aws-cloudtrail-logs`.
 
@@ -369,7 +375,7 @@ Opening a specific event revealed the raw auth.log content: `pam_unix(cron:sessi
 
 ![CloudWatch event detail showing pam_unix cron session opened for root, confirming live ingestion](screenshots/43-cloudwatch-auth-log-session-opened-event-detail.png)
 
-### Step 3.6: Metric Filter Engineering
+### Step 3.7: Metric Filter Engineering
 
 Raw log lines are noise. To build an alarm, I needed to define exactly what "bad" looks like and translate it into a number.
 
@@ -389,7 +395,7 @@ The `?` operator means OR. Any log line containing any of these phrases incremen
 
 This is the bridge between raw text and actionable detection.
 
-### Step 3.7: Alarm Threshold Logic
+### Step 3.8: Alarm Threshold Logic
 
 With the metric defined, I configured the alarm. The metric is `FailedPasswordCount` in the `SOC/Authentication` namespace, statistic Sum, period 1 minute.
 
@@ -399,7 +405,7 @@ The threshold condition is Greater/Equal to 3. The choice of 3 in 1 minute is de
 
 ![CloudWatch alarm threshold conditions set to GreaterEqual than 3](screenshots/47-cloudwatch-alarm-threshold-geq-3.png)
 
-### Step 3.8: SNS Automated Notification Pipeline
+### Step 3.9: SNS Automated Notification Pipeline
 
 Detection without notification is just a log. I built an automated push pipeline using Amazon SNS. When the alarm fires, it publishes to the `SOC-Alert-Notification` topic with my email as the endpoint. The Outlook subscription confirmation toast is visible right in the console screenshot, confirming the handshake was live.
 
@@ -416,10 +422,6 @@ arn:aws:sns:eu-north-1:338320348433:SOC-Alert-Notification:fd35aa5c-7c5f-4c7e-93
 Alarm created. It shows `Insufficient data` at creation time, which is expected because no attack traffic has hit the threshold yet.
 
 ![SOC-Brute-Force-Alert alarm created, state Insufficient data, Actions enabled](screenshots/50-cloudwatch-soc-brute-force-alarm-created.png)
-
-The pipeline is now complete end to end. The architecture diagram below shows exactly how all the components connect: the Victim Host with its IAM Role sends telemetry to CloudWatch Log Groups, Metric Filters apply the threat detection rules, and alerts flow through SNS to the analyst inbox.
-
-![AWS-SOC full architecture diagram showing Security Sources, Collection and Logging, SIEM and Analysis, Detection Engineering, Incident Response, and Management and Governance layers](screenshots/51-aws-soc-monitoring-pipeline-architecture.png)
 
 ---
 
@@ -563,5 +565,10 @@ This environment is now a live security research platform. The natural next laye
 
 ---
 
-*John Ejoke Oghenekewe | Cybersecurity Analyst | SOC Engineer | UTC+1*  
-*Part of the Cloud Security pillar of my cybersecurity portfolio*
+## Want to Talk About This Work?
+
+I am open to roles in cloud security engineering, SOC analysis, and detection engineering. If something in this project caught your attention, I am happy to walk you through any part of it in detail.
+
+**John Ejoke Oghenekewe**  
+Cybersecurity Analyst | SOC Engineer | Cloud Security  
+UTC+1 | Part of the Cloud Security pillar of my cybersecurity portfolio
