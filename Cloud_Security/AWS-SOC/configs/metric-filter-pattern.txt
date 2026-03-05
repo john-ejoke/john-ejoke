@@ -1,0 +1,28 @@
+# CloudWatch Metric Filter: Failed-SSH-Attempts
+# Log Group: SOC-Auth-Logs
+# Metric Namespace: SOC/Authentication
+# Metric Name: FailedPasswordCount
+# Metric Value: 1 (increment by 1 per matching log event)
+# Default Value: 0 (so zero-activity periods still emit data points)
+#
+# Engineering Note:
+# The ? operator in CloudWatch filter patterns means OR.
+# This pattern matches any auth.log line containing at least one of these strings.
+# This captures: brute force attempts, invalid usernames, dropped connections,
+# and permission-denied events from SSH.
+#
+# Pattern:
+? "Invalid user" ? "Connection closed" ? "Permission denied" ? "Failed password"
+#
+# Example matching log lines:
+# Feb 18 01:16:00 ip-172-31-29-33 sshd[12345]: Failed password for invalid user admin from 64.62.156.107 port 54321 ssh2
+# Feb 18 01:16:01 ip-172-31-29-33 sshd[12345]: Invalid user root from 64.62.156.107 port 54322
+# Feb 18 01:16:02 ip-172-31-29-33 sshd[12345]: Connection closed by invalid user admin 64.62.156.107 port 54323 [preauth]
+# Feb 18 01:16:03 ip-172-31-29-33 sshd[12345]: Permission denied (publickey) for ubuntu from 102.89.22.39 port 13358
+#
+# Alarm Logic (configured separately in CloudWatch Alarms):
+# Threshold: FailedPasswordCount >= 3
+# Period: 1 minute
+# Statistic: Sum
+# Evaluation Periods: 1
+# Treat Missing Data: notBreaching
