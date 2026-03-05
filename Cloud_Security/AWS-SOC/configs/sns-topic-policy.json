@@ -1,0 +1,48 @@
+{
+  "TopicName": "SOC-Alert-Notification",
+  "Region": "eu-north-1",
+  "Protocol": "email",
+  "SubscriptionConfirmed": true,
+  "SubscriptionArn": "arn:aws:sns:eu-north-1:338320348433:SOC-Alert-Notification:fd35aa5c-7c5f-4c7e-9368-7d0936798d75",
+
+  "TopicPolicy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "AllowCloudWatchAlarmsToPublish",
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "cloudwatch.amazonaws.com"
+        },
+        "Action": "SNS:Publish",
+        "Resource": "arn:aws:sns:eu-north-1:338320348433:SOC-Alert-Notification",
+        "Condition": {
+          "ArnLike": {
+            "aws:SourceArn": "arn:aws:cloudwatch:eu-north-1:338320348433:alarm:SOC-Brute-Force-Alert"
+          }
+        }
+      }
+    ]
+  }
+}
+
+# AWS CLI Commands to create the SNS topic and subscription:
+#
+# Step 1: Create the SNS topic
+# aws sns create-topic \
+#   --name SOC-Alert-Notification \
+#   --region eu-north-1
+#
+# Step 2: Subscribe your email to the topic
+# aws sns subscribe \
+#   --topic-arn "arn:aws:sns:eu-north-1:<ACCOUNT_ID>:SOC-Alert-Notification" \
+#   --protocol email \
+#   --notification-endpoint "your-email@example.com" \
+#   --region eu-north-1
+#
+# Step 3: Confirm the subscription by clicking the link in the confirmation email
+#
+# Step 4: Verify subscription status
+# aws sns list-subscriptions-by-topic \
+#   --topic-arn "arn:aws:sns:eu-north-1:<ACCOUNT_ID>:SOC-Alert-Notification" \
+#   --region eu-north-1
