@@ -30,13 +30,11 @@ This project changed how I think about threat exposure. The internet does not wa
 ---
 
 ---
-
 ## 🎥 Live Attack Monitoring (4-Hour Session)
 
 This video captures the honeypot receiving real-time global attack traffic via the T-Pot Attack Map and Kibana dashboards.
 
 [![Live Honeypot Attack Demo](https://img.youtube.com/vi/EN3mWSZRMkM/maxresdefault.jpg)](https://youtu.be/EN3mWSZRMkM)
-
 ---
 
 ## What This Project Demonstrates
