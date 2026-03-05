@@ -96,11 +96,11 @@ Accept the self-signed certificate warning. Log in with the credentials you set 
 
 The T-Pot landing page gives you access to:
 
-- **Attack Map** — real-time geolocation of incoming attacks
-- **Kibana** — full dashboard with attack breakdowns, histograms, and CVE detections
-- **Elasticvue** — direct Elasticsearch browser
-- **Spiderfoot** — OSINT and IP enrichment
-- **Cyberchef** — data decoding and analysis
+- **Attack Map**: - real-time geolocation of incoming attacks
+- **Kibana**: - full dashboard with attack breakdowns, histograms, and CVE detections
+- **Elasticvue**: - direct Elasticsearch browser
+- **Spiderfoot**: - OSINT and IP enrichment
+- **Cyberchef**: - data decoding and analysis
 
 ---
 
@@ -110,7 +110,7 @@ Open the **Attack Map** first. Within minutes you will see incoming connections 
 
 Open **Kibana** → T-Pot dashboard for structured data: attack counts by honeypot, by country, by destination port, and Suricata CVE alerts.
 
-The honeypot is fully passive. No interaction is required — it captures everything automatically.
+The honeypot is fully passive. No interaction is required - it captures everything automatically.
 
 ---
 
@@ -119,9 +119,9 @@ The honeypot is fully passive. No interaction is required — it captures everyt
 | Issue | Fix |
 |-------|-----|
 | T-Pot install fails | Confirm you are using Debian 11, not Debian 12 |
-| Services crash on startup | Instance RAM too low — use t2.large minimum |
+| Services crash on startup | Instance RAM too low - use t2.large minimum |
 | Cannot reach Kibana | Check security group has port 64297 open to My IP |
-| SSH refused after reboot | Use `-p 64295` — T-Pot changes the default SSH port |
+| SSH refused after reboot | Use `-p 64295` - T-Pot changes the default SSH port |
 | No attacks appearing | Confirm port range 1-6400 is open to 0.0.0.0/0 in security group |
 
 ---
