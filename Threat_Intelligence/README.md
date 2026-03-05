@@ -79,7 +79,7 @@ This project uses **T-Pot 24.04.1**, built and maintained by Deutsche Telekom Se
 
 The first step was registering on AWS to gain access to EC2 and the cloud infrastructure needed to host the honeypot.
 
-![AWS Signup and Confirmation](screenshots/01-aws-signup-confirmation.PNG)
+![AWS Signup and Confirmation](screenshots/01-aws-signup-confirmation.png)
 
 After registering, I navigated to the EC2 dashboard and selected the **Asia Pacific (Tokyo)** region. Tokyo was chosen deliberately to observe attack patterns targeting this part of the world.
 
