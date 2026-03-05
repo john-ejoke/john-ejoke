@@ -140,7 +140,7 @@ Log Status:  OK
 
 Two formatted alert emails were delivered to the analyst inbox within 60 seconds of each threshold crossing:
 
-**Alert 1 — 01:10:27 UTC**
+**Alert 1 - 01:10:27 UTC**
 ```
 Alarm Name:    SOC-Brute-Force-Alert
 State Change:  OK -> ALARM
@@ -150,7 +150,7 @@ Account:       338320348433
 ARN:           arn:aws:cloudwatch:eu-north-1:338320348433:alarm:SOC-Brute-Force-Alert
 ```
 
-**Alert 2 — 01:17:27 UTC**
+**Alert 2 - 01:17:27 UTC**
 ```
 Alarm Name:    SOC-Brute-Force-Alert
 State Change:  OK -> ALARM
