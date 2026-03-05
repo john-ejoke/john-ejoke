@@ -309,6 +309,9 @@ A vulnerability from 2013 showing up in a live attack session in 2025 is not an 
 ```
 Threat_Intelligence/HONEYPOT-AWS/
 ├── README.md
+├── docs/
+│   ├── SentinelCore-Honeypot-Report.pdf
+│   └── IOC-List.pdf
 └── screenshots/
     ├── 00-honeypot-architecture.png
     ├── 01-aws-signup-confirmation.png
