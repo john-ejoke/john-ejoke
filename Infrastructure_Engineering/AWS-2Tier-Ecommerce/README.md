@@ -117,7 +117,7 @@ I entered a strong master password. The AWS strength indicator confirmed it. For
 
 I set the compute resource option to "Don't connect to an EC2 compute resource." I am managing the connection manually through the security group rules I built in Phase 1, not through the automated wizard. The database is placed in the Default VPC, giving it three subnets and three availability zones.
 
-![RDS Connectivity: no EC2 auto-connect, Default VPC selected](screenshots/11-rds-connectivity-no-ec2-default-vpc.png)
+![RDS Connectivity: no EC2 auto-connect, Default VPC selected](screenshots/11-rds-connectivity-no-ec2-default.png)
 
 Public Access is set to No. This is non-negotiable. A database with a public IP address is an exposed database. With Public Access disabled, RDS assigns no public IP and the instance is reachable only from within the VPC. I then attached PrestaShop-DB-SG. That combination means the database has no public face and only accepts connections from the web tier through the chained security group rule.
 
