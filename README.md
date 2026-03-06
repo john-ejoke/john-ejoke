@@ -33,16 +33,16 @@ My experience includes **Incident Response**, **SIEM Engineering (Splunk & Wazuh
 **AWS** (EC2, VPC, IAM, CloudTrail, GuardDuty, RDS) | **Microsoft Azure** (Azure AD, Defender for Cloud)
 
 ### 🏗️ Infrastructure as Code
-**Terraform** | **AWS CloudFormation**
+Terraform | AWS CloudFormation
 
 ### 🖥️ Security Operations & SIEM
-**Splunk** | **Wazuh** | **ELK Stack** | **Sysmon**
+Splunk | Wazuh | ELK Stack | Sysmon
 
 ### 🛠️ Offensive & Defensive Tools
-**Wireshark** | **Nmap** | **Nessus** | **Qualys VMDR** | **YARA**
+Wireshark | Nmap | Nessus | Qualys VMDR | YARA
 
 ### 💻 Languages & Scripting
-**Bash** | **Python** | **SQL**
+Bash | Python | SQL
 
 ---
 
