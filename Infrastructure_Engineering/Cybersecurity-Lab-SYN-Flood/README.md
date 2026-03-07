@@ -1,6 +1,5 @@
-
-## Cybersecurity Lab: SYN Flood Simulation and Defense
-#### Simulating and Mitigating Network Attacks | Infrastructure Engineering
+## Cybersecurity Lab: SYN Flood Simulation and Analysis
+#### Simulating Network Attacks and Understanding Defensive Strategy | Infrastructure Engineering
 
 Author: John Ejoke Oghenekewe
 Role: Cybersecurity Analyst | SOC Engineer
@@ -15,9 +14,9 @@ Role: Cybersecurity Analyst | SOC Engineer
 
 ## Overview
 
-I built this lab to answer a question that kept coming up in my learning: what does a network attack actually look like when it is happening, and what does it take to stop it? Not in theory. In a real environment, with real tools, watching real traffic.
+I built this lab because I wanted to see a network attack with my own eyes. Not a diagram of one. Not a description. The actual packets, the actual load, the actual moment the connection table starts breaking down. The only way to understand what you are defending against is to watch it happen in a controlled environment where you are the one running it.
 
-To answer that, I set up two virtual machines on VirtualBox, put Kali Linux on one side as the attacker and Ubuntu on the other as the defender, connected them on an isolated host-only network, and ran a SYN flood from one to the other. I watched it hit in Wireshark, tracked it in Snort, and then built the defensive layers to shut it down. This document walks through everything I did and what I found.
+I set up two virtual machines on VirtualBox, Kali Linux as the attacker and Ubuntu as the target, connected them on an isolated host-only network, and launched a SYN flood from one to the other. I monitored the impact in Wireshark, tracked detection in Snort, observed the CPU and network behaviour under load, and then analysed what a real defensive response would require. This document is that analysis.
 
 **Tools used:** VirtualBox, Kali Linux, Ubuntu, hping3, Wireshark, Snort, iptables
 
@@ -25,107 +24,94 @@ To answer that, I set up two virtual machines on VirtualBox, put Kali Linux on o
 
 ## Building the Lab Environment
 
-The setup was intentionally simple so the focus could stay on the attack and defense, not the infrastructure. VirtualBox with a host-only adapter gave me two machines that could talk to each other without any outside network exposure. Kali Linux at `192.168.56.104` was the attacker. Ubuntu at `192.168.56.103` was the target.
+The setup was intentionally minimal. VirtualBox with a host-only adapter gave me two machines communicating in complete isolation from any outside network. Kali Linux at `192.168.56.104` was the attacker. Ubuntu at `192.168.56.103` was the target.
 
-On the Ubuntu machine I installed Wireshark for live packet capture and Snort as the intrusion detection and prevention engine. Before doing anything else I configured Snort's `snort.conf` file, setting the `HOME_NET` variable to `192.168.56.0/24` so Snort understood the boundaries of the network it was protecting. Then I wrote the custom rules in `local.rules` that would tell Snort exactly what to look for.
+On the Ubuntu machine I installed Wireshark for live packet capture and Snort as the network intrusion detection engine. I configured Snort's `snort.conf` to set `HOME_NET` to `192.168.56.0/24`, defining the network scope, and wrote custom detection rules in `local.rules` to flag the traffic I was about to generate. The full rule set is in the `rules/` folder of this repository.
 
 ---
 
-## Installing Snort and Writing the Rules
+## Installing Snort and Configuring Detection
 
-Installing Snort was straightforward with `sudo apt-get install snort`. The more interesting part was writing the rules. I started with an alert rule to detect any SYN packet hitting port 80. The logic was simple: before I try to block anything, I want to confirm I can see it.
+With `sudo apt-get install snort` on the Ubuntu machine, Snort was installed and ready. I wrote an alert rule to detect SYN packets hitting port 80 so I could confirm visibility before running the attack:
 
 ```
 alert tcp any any -> any 80 (msg:"SYN Packet Detected"; flags:S; sid:1000002;)
 ```
 
-Once detection was confirmed I added a drop rule to move from passive observation to active prevention:
-
-```
-drop tcp any any -> any 80 (msg:"SYN Packet Blocked"; flags:S; sid:1000003;)
-```
-
-The full rule set is in the `rules/local.rules` file in this repository. Snort was launched in detection mode with:
+Snort was launched in detection mode:
 
 ```
 sudo snort -A console -q -c /etc/snort/snort.conf -i enp0s3
 ```
 
-The output below shows Snort fully initialised, the rules engine loaded, and packet processing underway.
+The screenshot below shows Snort fully initialised, the rules engine loaded, and packet processing commenced. Everything was ready.
 
 ![Snort running on Ubuntu with rules engine loaded and packet processing commenced](screenshots/01-snort-installation-and-testing.png)
 
 ---
 
-## Testing the Setup
+## Testing Connectivity and Confirming Detection
 
-Before running the flood I wanted to confirm two things: that the machines could communicate, and that Snort was actually picking up traffic. I ran a basic ping from Kali to the Ubuntu target. Seven packets transmitted, seven received, zero packet loss. The network was clean.
+Before the flood I ran a basic ping from Kali to Ubuntu to confirm the machines could communicate and that Snort was picking up traffic. Seven packets transmitted, seven received, zero loss. On the Ubuntu side Snort immediately started generating alerts, logging the source IP, the port, and the protocol in real time.
 
-On the Ubuntu side, Snort immediately started generating alerts. Every ping was logged, the source IP flagged, the port recorded. The right side of the screenshot below shows Snort's console output in real time while the ping ran on the left. The detection pipeline was working exactly as expected.
+The screenshot below shows both sides simultaneously: the ping running on the Kali terminal on the left, and Snort's console on the right lighting up with detections as each packet arrived. The detection pipeline was confirmed.
 
-![Kali ping on the left, Snort live alerts firing on the right](screenshots/02-traffic-simulation-and-detection.png)
+![Kali ping on the left generating traffic, Snort live alerts on the right](screenshots/02-traffic-simulation-and-detection.png)
 
 ---
 
 ## Executing the SYN Flood
 
-With everything confirmed, I launched the actual attack from the Kali machine using hping3:
+With detection confirmed, I launched the flood from Kali using hping3:
 
 ```
 sudo hping3 --flood -S -p 80 -d 200 -w 64 192.168.56.103
 ```
 
-The `--flood` flag sends packets as fast as the machine can produce them without waiting for any reply. The `-S` flag sets the SYN flag in the TCP header, meaning every packet is initiating a connection that will never be completed. The target's connection table starts filling with half-open sessions that never close, which is the whole mechanism of a SYN flood.
+The `--flood` flag fires packets as fast as the machine can produce them with no waiting for replies. The `-S` flag sets the SYN flag in the TCP header, meaning every single packet is the start of a TCP handshake that will never be completed. The target's connection table begins filling with half-open sessions that never time out fast enough, which is exactly how a SYN flood exhausts a system.
 
-The attack ran for just over 16 seconds. When I stopped it, the statistics were stark: 530,498 packets transmitted, 0 received, 100% packet loss on the round trip. The Ubuntu machine was never going to respond to any of them. That was the point.
+The attack ran for just over 16 seconds. The result: 530,498 packets transmitted, 0 received, 100% packet loss. The Ubuntu machine never acknowledged a single one.
 
 ![hping3 output showing 530,498 packets transmitted and 0 received in 16 seconds](screenshots/03-attack-execution-from-kali.png)
 
 ---
 
-## What Wireshark Captured
+## Observing the Impact in Wireshark
 
-Wireshark was running on Ubuntu throughout the attack with the filter `tcp.flags.syn == 1` to isolate the SYN traffic. In the early seconds the packets arrived in sequence, one per second roughly, each one a SYN from `192.168.56.104` to `192.168.56.103` on port 80.
+This is where the project became most instructive. Wireshark was running throughout with the filter `tcp.flags.syn == 1` applied to isolate the SYN traffic. In the opening seconds the packets were sequential and spaced, each one a clean SYN from `192.168.56.104` to `192.168.56.103` on port 80.
 
-![Early Wireshark capture showing sequential SYN packets with tcp.flags.syn filter applied](screenshots/04-wireshark-capture.png)
+![Early Wireshark capture showing sequential SYN packets filtered with tcp.flags.syn == 1](screenshots/04-wireshark-capture.png)
 
-As the flood scaled up the capture told a different story. By packet 1096 and beyond, port numbers were being reused because the connection table had run out of fresh ones. SYN packets were still arriving continuously at approximately 32,806 per second but now mixed with TCP port reuse warnings as the system strained under the load. There were no ACK responses anywhere in the capture. The handshake was never completed. Not once.
+As the flood reached full scale the capture changed entirely. By packet 1096 and beyond, TCP port numbers were being reused because the connection table had exhausted its available ports. SYN packets were still arriving at approximately 32,806 per second, now interspersed with port reuse warnings as the system buckled under the volume. There were no ACK responses in the entire capture. Not one handshake was ever completed. The system was alive but functionally unreachable.
 
-![Wireshark at scale showing port number reuse and SYN flood continuing at packet 1096](screenshots/05-impact-of-syn-flood-attack.png)
+Watching the CPU and network metrics during this phase made the impact tangible in a way no textbook description does. The machine was not crashed. It was just overwhelmed, processing requests it could never finish.
+
+![Wireshark at full scale showing port reuse and continuous SYN flood at packet 1096](screenshots/05-impact-of-syn-flood-attack.png)
 
 ---
 
-## Applying the Defenses
+## Defense Analysis: What This Attack Requires to Stop
 
-Seeing the attack land in Wireshark and Snort made the mitigation work feel concrete rather than academic. I applied four layers of defense on the Ubuntu machine.
+This lab was focused on simulation and observation rather than live mitigation, but the analysis of what is required to defend against a SYN flood at different scales is a direct output of what I observed.
 
-SYN cookies were the first measure, enabling the system to handle legitimate connection requests even while the flood was happening:
+At the host level the immediate measures are SYN cookies, which allow a system to handle legitimate connections without allocating resources for incomplete handshakes, rate limiting via iptables to cap the volume of SYN requests processed per second, and direct IP blocking to drop traffic from a known attacker at the firewall level. A Snort drop rule can extend this into the detection layer, intercepting packets before they reach the connection table.
 
 ```
 sudo sysctl -w net.ipv4.tcp_syncookies=1
-```
-
-Rate limiting via iptables capped how many SYN requests the system would process per second, keeping it functional under pressure:
-
-```
 sudo iptables -A INPUT -p tcp --syn -m limit --limit 10/s --limit-burst 20 -j ACCEPT
-```
-
-A firewall rule blocked the attacking IP directly at the network level:
-
-```
 sudo iptables -A INPUT -s 192.168.56.104 -j DROP
+drop tcp any any -> any 80 (msg:"SYN Packet Blocked"; flags:S; sid:1000003;)
 ```
 
-And the Snort drop rule intercepted malicious SYN packets at the detection layer, logging every blocked packet with a timestamp and source so the activity remained fully visible even as it was being stopped.
+At enterprise scale these host-level controls are necessary but not sufficient. A flood at the volume observed in this lab, scaled up across a real network, requires load balancing to distribute incoming traffic across multiple systems so no single node bears the full weight, upstream scrubbing through a DDoS mitigation provider to filter attack traffic before it reaches the network perimeter, and network segmentation to contain the blast radius if a segment does become overwhelmed. The host is the last line of defense in that architecture, not the first.
 
-Each layer addressed a different part of the problem. Together they gave the system a way to survive the flood, filter the traffic, and maintain visibility throughout.
+What this lab made clear is that the gap between a system being technically online and being functionally available under attack is smaller than most people assume. The Ubuntu machine never went down. It just stopped being useful. That distinction matters enormously when you are thinking about what defense actually needs to achieve.
 
 ---
 
 ## What I Learned
 
-The thing that stayed with me most was how different the attack looks depending on which machine you are sitting at. On the Kali side it is one command and a number. On the Ubuntu side it is Wireshark filling faster than you can read it and Snort alerts scrolling without stopping. Understanding both perspectives is what makes the defensive work real. You cannot write a rule that matters if you have not watched the thing you are trying to catch.
+Running this simulation changed how I think about network attacks. The numbers in a flood statistic, half a million packets in sixteen seconds, are abstract until you watch Wireshark fill in real time and see the port table run out of space. The attack does not announce itself. It just quietly makes the system unusable. Understanding that from the inside is what makes the defensive analysis meaningful rather than mechanical.
 
 ---
 
