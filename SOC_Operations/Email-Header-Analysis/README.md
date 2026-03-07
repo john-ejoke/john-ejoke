@@ -1,7 +1,11 @@
-# Email Header Analysis
-### Investigating a Suspicious Phishing Email | SOC Operations | Cyblack Internship
+## Email Header Analysis
+#### Investigating a Suspicious Phishing Email | SOC Operations | Cyblack Internship
 
-**Author:** John Ejoke Oghenekewe | Cybersecurity Analyst | SOC Engineer
+Author: John Ejoke Oghenekewe
+Role: Cybersecurity Analyst | SOC Engineer
+
+
+
 ---
 
 ## Live Forensic Walkthrough
