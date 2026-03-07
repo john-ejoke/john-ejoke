@@ -1,0 +1,14 @@
+
+# Snort Custom Rules
+# Project: Cybersecurity Lab — SYN Flood Simulation and Defense
+# Author: John Ejoke Oghenekewe
+# Network: 192.168.56.0/24 (VirtualBox Host-Only)
+
+# Rule 1: Detect ICMP packets (initial connectivity testing)
+alert icmp any any -> any any (msg:"ICMP Packet Detected"; sid:1000001;)
+
+# Rule 2: Detect SYN packets targeting port 80 (detection phase)
+alert tcp any any -> any 80 (msg:"SYN Packet Detected"; flags:S; sid:1000002;)
+
+# Rule 3: Block SYN packets targeting port 80 (prevention phase)
+drop tcp any any -> any 80 (msg:"SYN Packet Blocked"; flags:S; sid:1000003;)
