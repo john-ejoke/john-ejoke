@@ -1,13 +1,15 @@
 # Email Header Analysis
 ### Investigating a Suspicious Phishing Email | SOC Operations | Cyblack Internship
 
+**Author:** John Ejoke Oghenekewe | Cybersecurity Analyst | SOC Engineer
+
 ---
 
 ## Live Forensic Walkthrough
 
 As part of my work during the Email Header Analysis phase at Cyblack SOC Academy, I completed a live forensic analysis of an email header on video. The walkthrough covers the same methodology documented here: opening the raw header, tracing the originating IP, interpreting authentication results, and reaching a verdict.
 
-**[Watch the live email header forensic analysis (approx. 22 mins)](https://youtu.be/EuG3D6nTctg?si=p3BG3LVA6O81Xcxl)**
+[![Watch the live email header forensic analysis](https://img.youtube.com/vi/EuG3D6nTctg/maxresdefault.jpg)](https://youtu.be/EuG3D6nTctg?si=p3BG3LVA6O81Xcxl)
 
 ---
 
@@ -29,15 +31,13 @@ This project documents my full investigation process: opening the raw header, tr
 
 The first thing I did was open the phishing sample file in Sublime Text and enable the Email Header syntax view. This made the raw header readable and allowed me to work through each field methodically. Email headers are written in reverse chronological order, meaning the first `Received` line you see is closest to the recipient and the last is closest to the sender. Understanding that ordering was the starting point for everything that followed.
 
-![Raw email header opened in Sublime Text](screenshots/01-raw-header-sublime-text.png)
+![Raw email header opened in Sublime Text with the full received chain and authentication fields visible](screenshots/03-originating-ip-identified.png)
 
 ---
 
 ### Identifying the Originating IP Address
 
-To find where the email actually came from, I navigated to the last `Received` field in the header, which represents the first server to handle the message. The originating IP address was **89.144.44.41**, coming from a server called `atujpdfghher.co.uk`. This was the first red flag: a `.co.uk` domain sending an email that claimed to be from Microsoft.
-
-![Originating IP address identified in Sublime Text](screenshots/03-originating-ip-identified.png)
+To find where the email actually came from, I navigated to the last `Received` field in the header, which represents the first server to handle the message. The originating IP address was **89.144.44.41**, coming from a server called `atujpdfghher.co.uk`. This was the first red flag: a `.co.uk` domain sending an email that claimed to be from Microsoft. You can see it circled on line 19 of the raw header above.
 
 I ran a WHOIS lookup on the IP using `whois.domaintools.com`. The result confirmed the IP belonged to **GHOSTNET GmbH**, a data center hosting provider based in **Frankfurt am Main, Germany**. The sending domain in the header pointed to a `.co.uk` address, but the IP resolved to Germany. That geographic and infrastructure mismatch was already a strong indicator of spoofing.
 
