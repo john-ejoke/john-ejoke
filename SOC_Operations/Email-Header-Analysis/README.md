@@ -2,7 +2,6 @@
 ### Investigating a Suspicious Phishing Email | SOC Operations | Cyblack Internship
 
 **Author:** John Ejoke Oghenekewe | Cybersecurity Analyst | SOC Engineer
-
 ---
 
 ## Live Forensic Walkthrough
@@ -75,10 +74,6 @@ I loaded the same header into **PhishTool** to cross-validate. The Authenticatio
 
 ![PhishTool authentication tab showing SPF, DKIM, DMARC all failed](screenshots/11-phishtool-authentication-tab.png)
 
-What made this finding land harder was seeing the authentication failures and the rendered email body in the same view. On the left, every authentication field returning none. On the right, a polished Microsoft security alert designed to look completely legitimate. That contrast captures exactly what makes this kind of attack effective: the surface is convincing, but the infrastructure underneath it is empty.
-
-![PhishTool split view showing authentication failures alongside the rendered email body](screenshots/08-phishtool-authentication-panel.png)
-
 I also ran `access-accsecurity.com` through **MXToolbox**. The result showed no DNS record published, no DMARC record found, and DMARC policy not enabled. This independently confirmed what the raw header had already told me: this domain had no legitimate email infrastructure behind it at all.
 
 ![MXToolbox scan showing no DNS and no DMARC for access-accsecurity.com](screenshots/12-mxtoolbox-domain-no-dns-record.png)
@@ -97,9 +92,13 @@ Loading the email into PhishTool's Details tab gave me a clear summary of the se
 
 ### Relay Path and Server Hops
 
-PhishTool's Transmission tab visualized the full relay path. The email passed through four servers before reaching the recipient's mailbox, starting at `atujpdfghher.co.uk` (89.144.44.41) and entering Microsoft's protection gateway before moving through Exchange Online infrastructure to final delivery. The message entered Microsoft's system from outside with no credentials and no authentication. Passing through Microsoft's servers was not evidence of legitimacy; it simply meant their gateway received and routed an inbound external email, which is standard behavior.
+The raw header itself showed the relay chain clearly. Reading the `Received` fields from bottom to top, the email originated at `atujpdfghher.co.uk` (89.144.44.41) and passed through Microsoft's protection gateway before moving through Exchange Online infrastructure to final delivery. The relay server hostnames are underlined in the header below.
 
-![PhishTool showing the full 4-hop relay path](screenshots/07-phishtool-email-relay-path.png)
+![Relay server hostnames underlined in the raw header in Sublime Text](screenshots/07-sublime-relay-servers.png)
+
+PhishTool's Transmission tab then visualized the same path as a structured hop-by-hop breakdown. The email passed through four servers before reaching the recipient's mailbox. The message entered Microsoft's system from outside with no credentials and no authentication. Passing through Microsoft's servers was not evidence of legitimacy; it simply meant their gateway received and routed an inbound external email, which is standard behavior.
+
+![PhishTool Transmission tab showing the full 4-hop relay path](screenshots/08-phishtool-relay-path.png)
 
 ---
 
