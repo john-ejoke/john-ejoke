@@ -10,7 +10,7 @@
 ## 🛡️ Professional Profile
 **SOC Analyst and Cloud Security Engineer** focused on infrastructure hardening, proactive threat detection, and continuous security improvement. I design and monitor cloud and hybrid lab environments to simulate real-world attack scenarios including brute-force attempts, malware execution, and lateral movement detection, transforming raw logs and telemetry into actionable security insights.
 
-My experience includes **Incident Response**, **SIEM Engineering (Splunk & Wazuh)**, **Log Analysis**, and **Vulnerability Assessment**, with a strong interest in defending modern cloud infrastructures against evolving adversary techniques. I am continuously improving my detection engineering and cloud security capabilities through hands-on projects and research
+My experience includes **Incident Response**, **SIEM Engineering (Splunk & Wazuh)**, **Log Analysis**, and **Vulnerability Assessment**, with a strong interest in defending modern cloud infrastructures against evolving adversary techniques. I am continuously improving my detection engineering and cloud security capabilities through hands-on projects and research.
 
 ---
 
