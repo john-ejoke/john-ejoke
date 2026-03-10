@@ -21,7 +21,7 @@ My experience includes **Incident Response**, **SIEM Engineering (Splunk & Wazuh
 | **[Cloud Security](./Cloud_Security/)** | Cloud infrastructure hardening and secure deployments (AWS/Azure) |
 | **[Infrastructure Engineering](./Infrastructure_Engineering/)** | Automating secure and repeatable infrastructure setups |
 | **[Malware Analysis](./Malware_Analysis/)** | Malware analysis, reverse engineering, and threat intelligence |
-| **[SOC Operations](./SOC_Operations/)** | SIEM monitoring, threat detection, and incident response |
+| **[SOC Operations](./SOC_Operations/)** | SIEM monitoring, threat detection, incident response, and network forensics |
 | **[Threat Intelligence](./Threat_Intelligence/)** | Honeypot deployment, attack analysis, and proactive threat hunting |
 | **[Vulnerability Management](./Vulnerability_Management/)** | Vulnerability scanning, risk assessment, and remediation |
 
