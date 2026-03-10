@@ -217,4 +217,4 @@ Based on what I uncovered in this investigation, these are the controls that wou
 
 *This investigation was conducted in a controlled home lab environment using a simulated PCAP file. All findings relate to lab-generated traffic. No real cardholder data was accessed or compromised.*
 
-*:Ejoke John | [LinkedIn](https://www.linkedin.com/in/john-ejoke/) | [GitHub](https://github.com/YOUR-USERNAME)*
+*:Ejoke John | [LinkedIn](https://www.linkedin.com/in/john-ejoke/) |
