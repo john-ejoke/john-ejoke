@@ -353,4 +353,4 @@ yara darkside_ransomware_detection.yar samplefile.txt
 
 *This project was completed as part of a structured threat intelligence lab exercise at CyBlack SOC Academy. All analysis was conducted in a controlled, isolated environment. No malicious files were executed on production systems.*
 
-*: Ejoke John | [[LinkedIn]](https://linkedin.com/in/YOUR-PROFILE) | [[GitHub]](https://github.com/YOUR-USERNAME)*
+*: Ejoke John | [[LinkedIn]](https://www.linkedin.com/in/john-ejoke/) | 
