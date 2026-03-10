@@ -25,31 +25,31 @@
 
 ## 1. Project Overview
 
-This project documents a complete threat intelligence cycle applied to a confirmed DarkSide ransomware sample : from initial hash discovery through structured research, MITRE ATT&CK mapping, YARA rule development, and actionable defense recommendations.
+This project documents a complete threat intelligence cycle that I conducted against a confirmed DarkSide ransomware sample : starting from initial hash discovery, through structured research and MITRE ATT&CK mapping, all the way to YARA rule development and actionable defense recommendations.
 
-The investigation was conducted as part of a SOC home lab exercise within a controlled Ubuntu virtual machine environment. The sample was identified from a batch of 50 SHA-256 hashes submitted to the VirusTotal API and cross-correlated with MITRE ATT&CK Group G0139 (CARBON SPIDER / DarkSide).
+I carried out this investigation as part of a SOC home lab exercise at CyBlack SOC Academy, working inside a controlled Ubuntu virtual machine environment. The sample was one I identified myself from a batch of 50 SHA-256 hashes submitted to the VirusTotal API, which I then cross-correlated with MITRE ATT&CK Group G0139 (CARBON SPIDER / DarkSide) to confirm attribution and map the full attack lifecycle.
 
-**Intelligence Cycle Phases Covered:**
+**Intelligence Cycle Phases I Covered:**
 
-| Phase | Description |
-|-------|-------------|
-| **Discovery** | Identified malicious hash among 50 samples via VirusTotal API automation |
-| **Research & Analysis** | Linked sample to DarkSide family; mapped full attack lifecycle to MITRE ATT&CK |
-| **Detection Engineering** | Developed and validated a custom YARA rule (zero false positives) |
-| **Mitigation** | Produced actionable defense and prevention recommendations |
+| Phase | What I Did |
+|-------|------------|
+| **Discovery** | Wrote a Python script to batch-submit 50 hashes to the VirusTotal API and identify the malicious sample |
+| **Research & Analysis** | Linked the sample to the DarkSide family through structured TI research; mapped the full attack lifecycle to MITRE ATT&CK |
+| **Detection Engineering** | Developed and validated a custom YARA rule with zero false positives |
+| **Mitigation** | Produced actionable defense and prevention recommendations based on observed TTPs |
 
 ---
 
 ## 2. Sample Discovery : VirusTotal API
 
-### Methodology
+### My Methodology
 
-A Python script was written to submit 50 SHA-256 hashes in batches to the VirusTotal v3 API. The script respected API rate limits (60-second waits between requests) and parsed each response for detection count and malware family classification.
+I wrote a Python script using the `requests` library to submit 50 SHA-256 hashes in batches to the VirusTotal v3 API. The script was built to respect API rate limits, pausing for 60 seconds between requests to avoid throttling, and parsed each JSON response to extract detection counts and malware family classifications.
 
-One hash stood out immediately : flagged malicious by **over 60 security vendors**, with consistent attribution to the DarkSide ransomware family.
+One hash immediately stood out : flagged as malicious by **over 60 security vendors**, with consistent and unanimous attribution to the DarkSide ransomware family across behavioural, signature, and heuristic detection engines.
 
 ![VirusTotal API Hash Detection](screenshots/01_virustotal_api_hash_detection.png)
-*Python script output showing the malicious hash flagged across multiple AV vendors via the VirusTotal API*
+*My Python script output showing the malicious hash flagged across multiple AV vendors via the VirusTotal API*
 
 ### Confirmed Malicious Hash
 
@@ -57,7 +57,7 @@ One hash stood out immediately : flagged malicious by **over 60 security vendors
 156335b95ba216456f1ac0894b7b9d6ad95404ac7df447940f21646ca0090673
 ```
 
-**VirusTotal Report:** https://www.virustotal.com/gui/file/156335b95ba216456f1ac0894b7b9d6ad95404ac7df447940f21646ca0090673
+**Full VirusTotal Report:** https://www.virustotal.com/gui/file/156335b95ba216456f1ac0894b7b9d6ad95404ac7df447940f21646ca0090673
 
 ### Vendor Detection Signatures
 
@@ -73,13 +73,13 @@ One hash stood out immediately : flagged malicious by **over 60 security vendors
 | Malwarebytes | `Malware.AI.4023494292` |
 | Symantec | `Ransom.Darkside` |
 
-The unanimous classification across vendor families : including behavioural engines (CrowdStrike, Elastic), signature engines (Microsoft, Kaspersky), and heuristic engines (Malwarebytes) : confirmed this as a high-confidence DarkSide sample requiring deeper investigation.
+The unanimous detection across vendor families : behavioural engines (CrowdStrike, Elastic), signature engines (Microsoft, Kaspersky), and heuristic engines (Malwarebytes) : gave me high confidence this was a genuine DarkSide sample worth investigating further. I used this as the anchor for all subsequent research and attribution work.
 
 ---
 
 ## 3. Threat Actor Profile
 
-**Group:** DarkSide (also tracked as CARBON SPIDER by CrowdStrike; MITRE ATT&CK Group G0139)
+**Group:** DarkSide (tracked as CARBON SPIDER by CrowdStrike; MITRE ATT&CK Group G0139)
 
 | Attribute | Detail |
 |-----------|--------|
@@ -96,12 +96,14 @@ The unanimous classification across vendor families : including behavioural engi
 
 ### RaaS Business Model
 
-DarkSide operated with a professional structure uncommon in cybercriminal groups at the time. The core developers maintained the ransomware codebase and infrastructure, while affiliates conducted intrusions and received a percentage of ransom payments. The group maintained:
+One of the things that stood out to me in my research was how professionally DarkSide operated : more like a structured business than a typical criminal group. The core developers maintained the ransomware codebase and backend infrastructure, while recruited affiliates handled the actual intrusions and split ransom payments with the core team. The group maintained:
 
-- A dedicated **press room** for media communications
+- A dedicated **press room** for issuing public statements and media communications
 - A **victim hotline** for ransom negotiation support
-- A **data leak site** (DLS) for double-extortion pressure
-- Affiliate profit-sharing tiers (typically 75–90% to affiliates)
+- A **data leak site (DLS)** used to apply double-extortion pressure
+- Affiliate profit-sharing tiers, typically 75–90% going to the affiliate
+
+This level of operational sophistication is what made DarkSide particularly dangerous : it was scalable, and the affiliate model meant the core developers could stay at arm's length from individual attacks.
 
 ### Motivation & Tactics
 
@@ -122,7 +124,7 @@ DarkSide operated with a professional structure uncommon in cybercriminal groups
 | **Ransom Paid** | $4.4 million USD (partially recovered by DOJ) |
 | **Consequence** | DarkSide publicly shut down operations shortly after due to law enforcement pressure |
 
-The Colonial Pipeline attack was a watershed moment in ransomware history : the first time a ransomware group directly triggered a national emergency declaration in the United States (Executive Order signed by President Biden). The attack highlighted the catastrophic risk of ransomware to operational technology (OT) and industrial control systems (ICS) environments.
+This attack is what brought DarkSide to global attention and ultimately led to its downfall. What struck me during my research was that the pipeline itself wasn't directly compromised : the operational shutdown was a precautionary decision by Colonial after their IT billing systems were encrypted. That detail matters for defenders: ransomware hitting IT infrastructure can cascade into OT shutdowns even without the malware ever touching industrial systems. A national emergency was declared, and the DOJ later recovered roughly $2.3 million of the ransom through cryptocurrency tracing.
 
 ### Brenntag : May 2021 (Germany)
 
@@ -134,15 +136,19 @@ The Colonial Pipeline attack was a watershed moment in ransomware history : the 
 | **Ransom Paid** | $4.4 million USD |
 | **Entry Vector** | Credential theft (purchased stolen credentials) |
 
+The Brenntag attack is a textbook example of why credential hygiene matters. DarkSide affiliates purchased stolen credentials : they didn't need a zero-day or sophisticated exploit, just valid credentials that were already for sale. The $4.4M ransom paid within the same month as Colonial Pipeline showed the group was running multiple high-value operations simultaneously through its affiliate network.
+
 ### Target Industry Pattern
 
-DarkSide and its affiliates showed a deliberate focus on high-revenue organisations in critical sectors with low tolerance for downtime : maximising both ransom pressure and payment likelihood. Energy and chemical sectors were particularly attractive due to operational continuity requirements.
+Across both attacks and broader DarkSide campaign data, I observed a clear pattern: the group deliberately targeted high-revenue organisations in sectors where operational downtime carries extreme financial and reputational risk. Energy and chemical distribution were prime targets precisely because these organisations cannot afford extended outages : which maximises ransom payment pressure.
 
 ---
 
 ## 5. Attack Lifecycle : MITRE ATT&CK Mapping
 
 **MITRE ATT&CK Group:** [G0139 : CARBON SPIDER (DarkSide)](https://attack.mitre.org/groups/G0139/)
+
+I mapped the full DarkSide attack lifecycle to the MITRE ATT&CK framework using the G0139 group page, CISA advisory AA21-131A, and behavioral indicators observed in the sample. The table below covers all techniques I identified across the kill chain.
 
 ### Full Kill Chain
 
@@ -171,11 +177,11 @@ DarkSide and its affiliates showed a deliberate focus on high-revenue organisati
 
 ### Encryption Implementation
 
-DarkSide used a two-layer encryption scheme:
-- **Salsa20** for file content encryption (fast, stream cipher)
-- **RSA-1024** for encrypting the Salsa20 key (asymmetric key protection)
+Something I found particularly interesting technically was DarkSide's two-layer encryption scheme:
+- **Salsa20** for encrypting file content : a fast stream cipher that can process large volumes of data quickly
+- **RSA-1024** for encrypting the Salsa20 session key : meaning the private key never touches the victim's machine
 
-This design means decryption without the attacker's private RSA key is computationally infeasible.
+This design is specifically chosen to make decryption impossible without the attacker's private RSA key, even if a victim captures the ransomware binary and reverse-engineers it.
 
 ---
 
@@ -183,22 +189,24 @@ This design means decryption without the attacker's private RSA key is computati
 
 ### DarkSide "Shutdown" (May 2021)
 
-Following the Colonial Pipeline attack and subsequent law enforcement pressure, DarkSide announced it was ceasing operations, claiming its servers and cryptocurrency funds had been seized. This announcement was widely viewed by security researchers and CISA as a tactical rebranding rather than a genuine closure.
+Following the Colonial Pipeline attack and the resulting law enforcement pressure, DarkSide announced it was ceasing operations, claiming its servers and cryptocurrency had been seized. In my research I found this was widely assessed by CISA and the broader threat intelligence community as a tactical rebranding rather than a genuine closure : the evidence for that assessment came quickly.
 
 ### BlackMatter (July 2021)
 
-BlackMatter emerged approximately two months after DarkSide's announced shutdown. CISA and multiple threat intelligence firms quickly identified strong technical and operational overlaps:
+BlackMatter emerged just two months after DarkSide's announced shutdown. When I reviewed the technical indicators, the overlaps were too strong to be coincidental:
 
-- Identical or near-identical encryption routines
-- Shared code patterns in the ransomware binary
-- Consistent RaaS affiliate structure and profit-sharing model
-- Similar target selection criteria (avoiding CIS countries, hospitals, schools)
+- Identical or near-identical encryption routines in the binary
+- Shared code patterns and RaaS affiliate infrastructure
+- Consistent target selection criteria (avoiding CIS countries, hospitals, schools)
+- Same profit-sharing model structure for affiliates
 
-BlackMatter subsequently also shut down in November 2021, again likely due to law enforcement pressure. Elements of both groups are believed to have contributed to later RaaS operations.
+CISA formally identified BlackMatter as a DarkSide successor in July 2021. BlackMatter itself shut down in November 2021, again under law enforcement pressure. The pattern : rebrand, operate, shut down, rebrand : is now a well-documented cycle in the RaaS ecosystem, and understanding it is important for TI analysts tracking long-term threat actor lineage.
 
 ---
 
 ## 7. Indicators of Compromise (IOCs)
+
+The IOCs below were aggregated from the confirmed sample, CISA advisory AA21-131A, MITRE ATT&CK G0139, and supporting threat intelligence reports.
 
 ### File Indicators
 
@@ -232,109 +240,106 @@ BlackMatter subsequently also shut down in November 2021, again likely due to la
 | **Protocol** | HTTPS | C2 communication channel |
 | **Pattern** | Suspicious domains (dynamic DNS) | C2 beaconing pattern |
 
-> **Note:** Specific C2 domain values were not present in the analysed samples. For current IOC feeds, reference [CISA AA21-131A](https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-131a) and [MITRE ATT&CK G0139](https://attack.mitre.org/groups/G0139/).
+> **Note:** Specific C2 domain values were not recoverable from the analysed sample. For current IOC feeds, reference [CISA AA21-131A](https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-131a) and [MITRE ATT&CK G0139](https://attack.mitre.org/groups/G0139/).
 
 ---
 
 ## 8. YARA Detection Rule
 
-The YARA rule is located at: [`yara/darkside_ransomware_detection.yar`](yara/darkside_ransomware_detection.yar)
+The YARA detection rule I wrote for this investigation is located at: [`darkside_ransomware_detection.yar`](darkside_ransomware_detection.yar)
 
-### Rule Summary
+### How I Built It
 
-The rule was developed by identifying eight distinct behavioural indicators extracted from threat intelligence analysis of the confirmed DarkSide sample. Detection triggers when **3 or more** indicators are present in a scanned file, balancing sensitivity with specificity.
+I started by reviewing the behavioural indicators I'd aggregated across the MITRE ATT&CK mapping and IOC research, then selected eight strings that are tightly tied to DarkSide's specific behaviour : things that wouldn't appear in legitimate software. I authored the rule in Sublime Text and structured it with a condition of `3 of them`, meaning at least three of the eight indicators must be present to trigger detection. This threshold balances broad coverage with false positive control.
 
 ![YARA Rule Authoring](screenshots/02_yara_rule_authoring.png)
-*YARA rule authored in Sublime Text with all eight DarkSide behavioural string indicators and detection condition*
+*The YARA rule I authored in Sublime Text : eight DarkSide behavioural string indicators with a 3-of-8 detection condition*
 
-**String indicators used:**
-- `README_RECOVER_FILES.txt` : ransom note filename
-- `.locked` / `.darkside` : encrypted file extension markers
-- `SysUpdateSvc` : fake persistence service name
-- `vssadmin delete shadows` : shadow copy deletion command
-- `powershell -enc` : obfuscated PowerShell execution
-- `cmd.exe /c whoami` : privilege discovery command
-- `schtasks /create /tn` : scheduled task creation
-- `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` : registry persistence path
+**The eight string indicators I used:**
 
-### Validation
+| String | What It Detects |
+|--------|-----------------|
+| `README_RECOVER_FILES.txt` | Ransom note filename dropped post-encryption |
+| `.locked` / `.darkside` | File extensions appended to encrypted files |
+| `SysUpdateSvc` | Fake service name used for persistence |
+| `vssadmin delete shadows` | Shadow copy deletion to prevent recovery |
+| `powershell -enc` | Obfuscated PowerShell execution |
+| `cmd.exe /c whoami` | Privilege discovery command |
+| `schtasks /create /tn` | Scheduled task creation for persistence |
+| `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` | Registry auto-start path |
 
-The rule was tested using the YARA CLI on Kali Linux against a synthetic test file (`samplefile.txt`) containing embedded DarkSide behavioural strings. The scan confirmed a **successful match with zero false positives** on benign comparison samples.
+### How I Validated It
+
+To test the rule, I created a synthetic file (`samplefile.txt`) that mimics what a DarkSide ransom note and system modification log would look like : embedding the behavioural strings the rule targets. I then ran the YARA CLI against it on Kali Linux.
 
 ![YARA Test Sample File](screenshots/03_yara_test_sample_file.png)
-*Synthetic test file (samplefile.txt) containing embedded DarkSide behavioural indicators : ransom note reference, SysUpdateSvc persistence, shadow copy deletion, and registry run key*
+*The synthetic test file I created : embedding DarkSide behavioural indicators to simulate a real detection scenario*
 
 ![YARA Detection Confirmed](screenshots/04_yara_detection_confirmed.png)
-*YARA CLI scan confirming successful detection: `DarkSide_Ransomware samplefile.txt` : zero false positives on benign samples*
+*YARA CLI confirming a successful match: `DarkSide_Ransomware samplefile.txt` : the rule fired correctly with zero false positives on benign comparison files*
 
 ```bash
-# Command used for validation
 yara darkside_ransomware_detection.yar samplefile.txt
 # Output: DarkSide_Ransomware samplefile.txt  ✓
 ```
 
-> **Tuning Note:** Increasing the condition threshold to `4 of them` or higher reduces false positive risk in noisy environments while maintaining strong detection coverage.
+> **Tuning Note:** In a production EDR or SIEM environment, I'd recommend increasing the threshold to `4 of them` to further reduce false positive risk while maintaining strong detection coverage.
 
 ---
 
 ## 9. Detection & Prevention Strategies
 
+Based on my analysis of DarkSide's TTPs, the following controls directly address the attack vectors and behaviours I observed.
+
 ### Endpoint & Detection
 
-| Control | Description |
-|---------|-------------|
-| **EDR with Behavioural Detection** | Deploy endpoint detection tools capable of identifying DarkSide's behavioural patterns (shadow copy deletion, encoded PowerShell, service creation) |
-| **SIEM Integration** | Centralise log collection; alert on `vssadmin delete shadows`, new service creation, and scheduled task anomalies |
-| **Custom YARA Rules** | Deploy the YARA rule in this repository via your EDR or threat hunting platform |
-| **IOC Feeds** | Subscribe to threat intelligence feeds (CISA, ISAC sharing, commercial TI) and integrate DarkSide IOCs |
+| Control | Why It Matters for DarkSide |
+|---------|----------------------------|
+| **EDR with Behavioural Detection** | DarkSide's most detectable behaviours : shadow copy deletion, encoded PowerShell, new service creation : are exactly what behavioural EDR engines are built to catch |
+| **SIEM Integration** | Centralise logs and alert on `vssadmin delete shadows`, unexpected service creation, and scheduled task anomalies |
+| **Custom YARA Rules** | Deploy the rule in this repo via your threat hunting platform for proactive detection |
+| **IOC Feeds** | Integrate DarkSide IOCs from CISA and commercial TI feeds into your detection stack |
 
 ### Network Security
 
-| Control | Description |
-|---------|-------------|
-| **Network Segmentation / Micro-segmentation** | Isolate critical OT/ICS systems from corporate IT networks; limit lateral movement paths |
-| **Zero Trust Architecture** | Apply ZTNA principles : no implicit trust based on network location |
-| **Firewall Hardening** | Restrict inbound RDP (TCP 3389); disable unused ports; restrict outbound HTTPS to known-good destinations |
-| **Secure Remote Access** | Replace open RDP with hardened VPN + MFA or a Zero Trust Network Access (ZTNA) solution |
+| Control | Why It Matters for DarkSide |
+|---------|----------------------------|
+| **Network Segmentation** | DarkSide scans for network shares and AD accounts : segmentation limits how far an affiliate can move laterally after initial access |
+| **Zero Trust Architecture** | Removes the implicit trust that allows lateral movement once a foothold is established |
+| **Firewall Hardening** | Restrict inbound RDP (TCP 3389) : a primary DarkSide initial access vector |
+| **Secure Remote Access** | Replace exposed RDP with hardened VPN + MFA or ZTNA |
 
 ### Identity & Access
 
-| Control | Description |
-|---------|-------------|
-| **Multi-Factor Authentication (MFA)** | Enforce MFA on all remote access, email, and privileged accounts |
-| **Least Privilege** | Restrict user permissions; prevent standard users from running PowerShell or modifying services |
-| **Strong Credential Policy** | Enforce complex passwords; monitor for credential stuffing against exposed RDP/VPN endpoints |
-| **Privileged Access Management (PAM)** | Monitor and vault privileged account usage |
+| Control | Why It Matters for DarkSide |
+|---------|----------------------------|
+| **MFA** | Would have blocked the Brenntag intrusion : stolen credentials alone wouldn't have been enough |
+| **Least Privilege** | Prevents standard user accounts from running PowerShell or creating services |
+| **Strong Credential Policy** | Defends against RDP brute-force and credential-stuffing, both used by DarkSide affiliates |
+| **PAM** | Monitor and vault privileged account usage; flag anomalous privilege escalation |
 
 ### Resilience & Recovery
 
-| Control | Description |
-|---------|-------------|
-| **Offline Backups** | Maintain encrypted, immutable, air-gapped backups : DarkSide specifically deletes VSS shadow copies and network-accessible backups |
-| **Backup Testing** | Regularly test recovery procedures; a backup you haven't tested is not a reliable backup |
-| **Patch Management** | Apply OS and application patches promptly; DarkSide affiliates actively exploit unpatched RDP and VPN vulnerabilities |
-| **Email Filtering** | Block malicious attachments and URLs; enforce DMARC/DKIM/SPF |
-
-### Security Awareness
-
-| Control | Description |
-|---------|-------------|
-| **Phishing Simulations** | Regular simulated phishing campaigns to train users to recognise spearphishing |
-| **Incident Response Drills** | Tabletop exercises simulating ransomware scenarios, particularly for critical infrastructure operators |
+| Control | Why It Matters for DarkSide |
+|---------|----------------------------|
+| **Offline / Air-Gapped Backups** | DarkSide specifically targets VSS shadow copies and network-accessible backups : offline backups are the last line of defence |
+| **Backup Testing** | A backup that hasn't been tested for recovery is not a reliable backup |
+| **Patch Management** | DarkSide affiliates actively exploit unpatched RDP and VPN vulnerabilities for initial access |
+| **Email Filtering** | Block malicious attachments and enforce DMARC/DKIM/SPF to stop phishing at the perimeter |
 
 ---
 
 ## 10. Tools & Environment
 
-| Tool | Purpose |
-|------|---------|
-| **Ubuntu VM** | Isolated analysis environment |
-| **Python 3 + `requests` library** | VirusTotal API hash batch submission |
+| Tool | How I Used It |
+|------|--------------|
+| **Ubuntu VM** | Isolated analysis environment for the full investigation |
+| **Python 3 + `requests` library** | Wrote the VirusTotal API batch hash submission script |
 | **VirusTotal v3 API** | Sample identification and vendor detection correlation |
-| **YARA (CLI)** | Detection rule authoring and validation |
+| **YARA (CLI)** | Detection rule validation against test samples |
 | **Kali Linux** | YARA rule testing environment |
 | **Sublime Text** | YARA rule authoring |
-| **MITRE ATT&CK Navigator** | Attack lifecycle mapping (Group G0139) |
+| **MITRE ATT&CK Navigator** | Attack lifecycle mapping against Group G0139 |
 
 ---
 
@@ -351,6 +356,6 @@ yara darkside_ransomware_detection.yar samplefile.txt
 
 ---
 
-*This project was completed as part of a structured threat intelligence lab exercise at CyBlack SOC Academy. All analysis was conducted in a controlled, isolated environment. No malicious files were executed on production systems.*
+*This investigation was completed as part of a structured threat intelligence lab exercise at CyBlack SOC Academy. All analysis was conducted in a controlled, isolated environment. No malicious files were executed on production systems.*
 
 *: Ejoke John | [[LinkedIn]](https://www.linkedin.com/in/john-ejoke/) | 
