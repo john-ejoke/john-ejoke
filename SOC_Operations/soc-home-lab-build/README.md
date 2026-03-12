@@ -3,6 +3,8 @@
 **Author:** Ejoke John Oghenekewe
 **Role:** Cybersecurity Analyst
 **LinkedIn:** [linkedin.com/in/john-ejoke](https://www.linkedin.com/in/john-ejoke/)
+**Domain:** SOC Operations
+
 ---
 
 ![Splunk Lifecycle](assets/splunk_lifecycle.png)
@@ -101,19 +103,19 @@ In addition to the Ubuntu-based SIEM, I also deployed Splunk Enterprise directly
 
 I navigated to the Splunk Enterprise download page and selected the Linux package matching my architecture. I used the `wget` link to pull it directly from the terminal.
 
-![Splunk Enterprise Download Page](assets/Splunk_Ent__download_page.jpg)
+![Splunk Enterprise Download Page](assets/splunk_ent_download_page.jpg)
 
 ### Starting Splunk Enterprise
 
 After installation, I started Splunk using `sudo /opt/splunk/bin/splunk start`, accepted the license agreement, and created admin credentials. The startup output confirmed all ports were open and the web server was available at `http://127.0.0.1:8000`.
 
-![Starting Splunk Enterprise](assets/starting_splunk_ent_.jpg)
+![Starting Splunk Enterprise](assets/starting_splunk_ent.jpg)
 
 ### Accessing Splunk Web
 
 With the service running, I accessed the Splunk Web Interface at `http://kali:8000` using my admin credentials.
 
-![Splunk Web Login Kali](assets/splunk_web.png)
+![Splunk Web Login Kali](assets/splunk_web_login_kali.png)
 ![Splunk Web Dashboard](assets/splunk_web_dashboard.png)
 
 ### Downloading and Installing the Universal Forwarder
