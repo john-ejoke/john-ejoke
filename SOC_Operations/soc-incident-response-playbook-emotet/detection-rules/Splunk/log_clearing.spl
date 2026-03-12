@@ -1,0 +1,23 @@
+| title: Windows Security Event Log Cleared
+| description: Detects when the Windows Security event log is cleared using wevtutil
+|              or any other method. Log clearing is a strong indicator of an attacker
+|              attempting to destroy forensic evidence. This event should always
+|              generate a critical alert regardless of context.
+| mitre_attack: T1070.001 - Indicator Removal: Clear Windows Event Logs
+| event_id: 1102 (Security Log Cleared)
+| severity: CRITICAL
+| author: Ejoke John Oghenekewe
+| date: 2024-01-01
+| notes: In this investigation, logs were cleared on 2023-09-01, six weeks before
+|        the core attack. The absence of a detection rule for this event allowed
+|        the attacker to operate in a forensic blind spot for the entire preparation
+|        phase. This query directly closes that gap.
+| references:
+|   - https://attack.mitre.org/techniques/T1070/001/
+
+index=windows EventCode=1102
+| eval alert="CRITICAL - Security Log Cleared"
+| eval time_cleared=strftime(_time, "%Y-%m-%d %H:%M:%S")
+| eval recommended_action="Treat as compromise until proven otherwise. Check for concurrent suspicious activity."
+| table time_cleared, ComputerName, SubjectUserName, SubjectDomainName, alert, recommended_action
+| sort -_time
