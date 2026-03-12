@@ -67,7 +67,7 @@ This diagram shows the four phases of the NIST SP 800-61 lifecycle and the feedb
 
 ![Incident Response Lifecycle](assets/ir_lifecycle.png)
 
-> **Note:** In this investigation, the Preparation phase had clear gaps. No EDR was deployed and no alert existed for Event ID 1102 (log clearing) or Event ID 2004 (firewall change). Those gaps allowed the attacker to operate undetected for six weeks. The detection queries in Section 6 are a direct fix for that.
+> **Note:** In this investigation, the Preparation phase had clear gaps. No EDR was deployed and no alert existed for Event ID 1102 (log clearing) or Event ID 2004 (firewall change). Those gaps allowed the attacker to operate undetected for eleven weeks. The detection queries in Section 6 are a direct fix for that.
 
 ---
 
@@ -75,7 +75,7 @@ This diagram shows the four phases of the NIST SP 800-61 lifecycle and the feedb
 
 One of the first things I do in any investigation is build a timeline. It tells me not just what happened but in what order. The sequence here is what made it clear I was dealing with an APT-style intrusion rather than a one-off incident.
 
-> **Key Observation:** The attacker spent six weeks silently preparing: disabling the firewall on October 10 and clearing logs on September 1. Then on November 16, within a single three-hour burst, they dropped malware, established C2, and dumped credentials. This pattern is consistent with a pre-positioned threat actor who had already established a foothold before the core execution phase.
+> **Key Observation:** The attacker spent weeks silently preparing: disabling the firewall on October 10 and clearing logs as far back as September 1, eleven weeks before the core attack. Then on November 16, within a single three-hour burst, they dropped malware, established C2, and dumped credentials. This pattern is consistent with a pre-positioned threat actor who had already established a foothold before the core execution phase.
 
 ### 3.1 Visual Timeline
 
