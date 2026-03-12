@@ -3,8 +3,6 @@
 **Author:** Ejoke John Oghenekewe
 **Role:** Cybersecurity Analyst
 **LinkedIn:** [linkedin.com/in/john-ejoke](https://www.linkedin.com/in/john-ejoke/)
-**Domain:** SOC Operations
-
 ---
 
 ![Splunk Lifecycle](assets/splunk_lifecycle.png)
