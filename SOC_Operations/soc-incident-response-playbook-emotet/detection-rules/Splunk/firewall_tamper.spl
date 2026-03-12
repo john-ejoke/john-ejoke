@@ -1,0 +1,22 @@
+| title: Windows Firewall Disabled via netsh
+| description: Detects when the Windows Firewall is disabled across all profiles
+|              using the netsh advfirewall command. This is a common defense evasion
+|              technique used to allow unrestricted inbound and outbound traffic
+|              during an active compromise.
+| mitre_attack: T1562.004 - Impair Defenses: Disable or Modify System Firewall
+| event_id: 2004 (Windows Firewall Rule Modified)
+| severity: CRITICAL
+| author: Ejoke John Oghenekewe
+| date: 2024-01-01
+| notes: This query alone should trigger a P1 alert. There is almost no legitimate
+|        reason to disable all firewall profiles outside of a controlled maintenance
+|        window with prior approval.
+| references:
+|   - https://attack.mitre.org/techniques/T1562/004/
+
+index=windows EventCode=2004
+| search RuleAttr="*allprofiles*" AND RuleAttr="*off*"
+| eval alert_level="CRITICAL"
+| eval recommended_action="Immediately investigate and re-enable firewall. Isolate endpoint if unauthorized."
+| table _time, ComputerName, SubjectUserName, RuleAttr, alert_level, recommended_action
+| sort -_time
