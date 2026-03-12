@@ -2,6 +2,10 @@
 
 **Leveraging Sysmon for Real-Time Threat Detection and Behavioral Analytics**
 
+**Author:** Ejoke John | Cybersecurity Analyst
+**LinkedIn:** [linkedin.com/in/john-ejoke](https://www.linkedin.com/in/john-ejoke/)
+**Date:** August 2025
+
 ---
 
 ## Overview
@@ -37,6 +41,7 @@ This validated the full pipeline from endpoint to SIEM and confirmed the field e
 
 ![Sysmon log ingestion verification showing 757 EventCode=1 events](assets/splunk_verification.png)
 
+
 ---
 
 ## Dashboard: Endpoint Behaviour Overview
@@ -44,6 +49,7 @@ This validated the full pipeline from endpoint to SIEM and confirmed the field e
 The dashboard was built inside Splunk's native dashboard editor with a global time range selector set to the last 24 hours. Each panel targets a distinct Sysmon EventCode and answers a specific detection question.
 
 ![Dashboard scaffold with global time range configured](assets/splunk_dashboard.png)
+
 
 ---
 
@@ -59,7 +65,7 @@ index=Sysmon EventCode=1
 
 This panel surfaces the most frequently executed binaries and their parent processes. It is the starting point for behavioral baseline analysis : understanding what is normal makes anomalies visible.
 
-![Top process executions panel showing net.exe and net1.exe activity](assets/Top_Processes.png)
+![Top process executions panel showing net.exe and net1.exe activity](assets/top_processes.png)
 
 **Notable finding:** `net.exe` ran 104 times with `C:\Program Files (x86)\ossec-agent\wazuh-agent.exe` as the parent process, executing `net.exe accounts`. `net1.exe` followed immediately with 100 executions of `net1 accounts` under the same parent.
 
@@ -79,7 +85,7 @@ index=Sysmon EventCode=22
 
 This panel identifies which processes are initiating DNS requests and what domains they are resolving. It provides visibility into potential command-and-control beaconing, suspicious lookups, or misconfigured services.
 
-![DNS queries by process panel showing GoogleUpdater resolving play.googleapis.com](assets/DNS_processes_top.png)
+![DNS queries by process panel showing GoogleUpdater resolving play.googleapis.com](assets/dns_queries_by_process.png)
 
 The results here showed `GoogleUpdater.exe` resolving `play.googleapis.com` multiple times, which is consistent with expected Google software update behavior. The presence of `<unknown process>` in one row is worth noting : Sysmon occasionally fails to capture the process name when the process terminates before the event is written. In a production environment, that gap would be investigated further.
 
@@ -97,7 +103,7 @@ index=Sysmon EventCode=11
 
 This panel tracks files being written to disk, with a focus on sensitive or unusual paths. File creation in system directories, temp folders, or AppData locations is a common technique used in malware staging and persistence.
 
-![File creations panel showing svchost writing to AppData InstallService path](assets/File_Creations_in_Sensitive_Paths.png)
+![File creations panel showing svchost writing to AppData InstallService path](assets/file_creations_sensitive_paths.png)
 
 The top result showed `svchost.exe` writing 103 files to `C:\Windows\System32\config\systemprofile\AppData\Local\Microsoft\InstallService\` with a checkpoint extension. This is associated with the Windows Update Orchestrator and is expected behavior, but the volume and path pattern are exactly the kind of thing this panel is designed to surface for analyst review. Maps to **MITRE ATT&CK T1074 : Data Staged** when seen in malicious context.
 
@@ -115,7 +121,7 @@ index=Sysmon EventCode=3
 
 This panel reveals which processes are making outbound connections, the destination IPs and ports, and the protocol used. It supports detection of beaconing, data exfiltration, and unauthorized access attempts.
 
-![Network connections panel showing svchost and Chrome UDP 5353 activity](assets/network_registry.png)
+![Network connections panel showing svchost and Chrome UDP 5353 activity](assets/network_connections_by_process.png)
 
 The dominant traffic was `svchost.exe` sending UDP to `224.0.0.251` on port 5353 : this is mDNS (multicast DNS), a normal Windows behavior for local network discovery. Chrome also appeared with UDP 5353 traffic to link-local addresses. Port 5353 UDP at this volume is baseline noise in a Windows lab environment. In a production alert rule, I would filter known-good mDNS sources before alerting on this pattern.
 
@@ -133,7 +139,7 @@ index=Sysmon EventCode=1 Image=*powershell.exe*
 
 PowerShell is one of the most abused native Windows tools. This panel isolates all PowerShell executions and captures the full command line, including any base64-encoded payloads or obfuscated arguments.
 
-![PowerShell activity panel showing secedit LSA export and ExecutionPolicy Restricted commands](assets/powershell.png)
+![PowerShell activity panel showing secedit LSA export and ExecutionPolicy Restricted commands](assets/powershell_usage.png)
 
 The top result showed `SysWOW64\WindowsPowerShell\v1.0\powershell.exe` executing a `secedit /export` command that exported local security policy and then parsed the `LSAAnonymousNameLookup` value from the output. This is a technique used to enumerate local security settings and check whether anonymous enumeration of SAM accounts is permitted. While Wazuh uses this for auditing, it is also a known reconnaissance technique. Maps to **MITRE ATT&CK T1012 : Query Registry** and **T1082 : System Information Discovery**.
 
@@ -151,7 +157,7 @@ index=Sysmon EventCode=13
 
 Registry modifications are a primary persistence mechanism for malware. This panel tracks which processes are writing to the registry, which keys are being modified, and what values are being set.
 
-![Registry changes panel showing Chrome and svchost registry writes](assets/registry_processes.png)
+![Registry changes panel showing Chrome and svchost registry writes](assets/registry_changes_by_process.png)
 
 The top result was `chrome.exe` writing Binary Data to a BAM (Background Activity Moderator) state key under `HKLM\System\CurrentControlSet\Services` : this is normal Chrome behavior related to execution tracking. `svchost.exe` was also writing DWORD values to the Windows Update Orchestrator TaskCache. Neither of these is inherently suspicious, but this panel would immediately surface a malicious process writing to `HKLM\Software\Microsoft\Windows\CurrentVersion\Run` or similar autorun locations. Maps to **MITRE ATT&CK T1547.001 : Registry Run Keys / Startup Folder** when used for persistence.
 
