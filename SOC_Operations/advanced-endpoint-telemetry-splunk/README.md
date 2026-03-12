@@ -206,6 +206,6 @@ All queries used in this project are available in [`spl/endpoint_telemetry_queri
 
 ## Related Projects
 
-- [SOC Home Lab Build & Documentation](https://github.com/john-ejoke/SOC_Operations/soc-home-lab-build) — Splunk deployment, Universal Forwarder configuration, and pipeline validation that this project builds on
-- [SOC Incident Response Playbook — Emotet](https://github.com/john-ejoke/SOC_Operations/soc-incident-response-playbook-emotet) — Detection and response workflow for a real-world malware campaign
-- [Splunk SIEM Threat Detection](https://github.com/john-ejoke/SOC_Operations/splunk-siem-threat-detection) — Broader SIEM detection work built on the same lab infrastructure
+- [SOC Home Lab Build & Documentation](https://github.com/john-ejoke/john-ejoke/tree/main/SOC_Operations/soc-home-lab-build) — Splunk deployment, Universal Forwarder configuration, and pipeline validation that this project builds on
+- [SOC Incident Response Playbook — Emotet](https://github.com/john-ejoke/john-ejoke/tree/main/SOC_Operations/soc-incident-response-playbook-emotet) — Detection and response workflow for a real-world malware campaign
+- [Splunk SIEM Threat Detection](https://github.com/john-ejoke/john-ejoke/tree/main/SOC_Operations/splunk-siem-threat-detection) — Broader SIEM detection work built on the same lab infrastructure
