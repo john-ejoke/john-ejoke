@@ -3,6 +3,7 @@
 **Author:** Ejoke John Oghenekewe
 **Role:** Cybersecurity Analyst
 **LinkedIn:** [linkedin.com/in/john-ejoke](https://www.linkedin.com/in/john-ejoke/)
+**Domain:** SOC Operations
 
 ---
 
@@ -10,7 +11,7 @@
 
 ## Overview
 
-I built this SOC home lab from scratch to get hands-on experience with the full log monitoring pipeline — from endpoint telemetry collection through to real-time analysis in a SIEM. The lab runs on my physical laptop using VirtualBox, with three purpose-built VMs handling distinct roles: attacker, victim, and SIEM. Alongside the VirtualBox environment, I also deployed Splunk Enterprise natively on Kali Linux and configured a Universal Forwarder to ship live system logs directly into it — giving me two parallel Splunk deployments to work with and compare.
+I built this SOC home lab from scratch to get hands-on experience with the full log monitoring pipeline, from endpoint telemetry collection through to real-time analysis in a SIEM. The lab runs on my physical laptop using VirtualBox, with three purpose-built VMs handling distinct roles: attacker, victim, and SIEM. Alongside the VirtualBox environment, I also deployed Splunk Enterprise natively on Kali Linux and configured a Universal Forwarder to ship live system logs directly into it, giving me two parallel Splunk deployments to work with and compare.
 
 Everything documented here was built, configured, and tested by me. No pre-built OVAs, no shortcuts.
 
@@ -33,7 +34,7 @@ Everything documented here was built, configured, and tested by me. No pre-built
 
 ![Lab Topology](assets/topology.png)
 
-All three VMs sit on a VirtualBox internal network named **SOC-Lab** with the subnet `192.168.100.0/24`. None of them have direct internet access — traffic is isolated to the lab network. Each machine has a defined role:
+All three VMs sit on a VirtualBox internal network named **SOC-Lab** with the subnet `192.168.100.0/24`. None of them have direct internet access, traffic is isolated to the lab network. Each machine has a defined role:
 
 | VM | IP Address | Role |
 |---|---|---|
@@ -48,24 +49,24 @@ All three VMs sit on a VirtualBox internal network named **SOC-Lab** with the su
 
 ## Environment Setup
 
-### Kali Linux — Attacker Machine
+### Kali Linux - Attacker Machine
 
 Kali serves as the attacker node. I configured its network adapter to the internal SOC-Lab network so all attack traffic stays contained within the lab.
 
 ![Kali Network Adapter](assets/kali_network_adapter.png)
 ![Kali Tools Installed](assets/kali_tools_installed.png)
 
-### Windows 10 — Victim Endpoint
+### Windows 10 - Victim Endpoint
 
 The Windows 10 VM is the target. I installed two monitoring agents on it:
 
-- **Sysmon v15.15** — for deep endpoint telemetry (process creation, network connections, process access)
-- **Splunk Universal Forwarder** — to ship Sysmon and Windows Event logs to the SIEM
+- **Sysmon v15.15** for deep endpoint telemetry (process creation, network connections, process access)
+- **Splunk Universal Forwarder** to ship Sysmon and Windows Event logs to the SIEM
 
 ![Sysmon Install via PowerShell](assets/sysmon_install_powershell.png)
 ![Sysmon Config Rules](assets/sysmon_config_rules.png)
 
-### Ubuntu 22.04 — SIEM
+### Ubuntu 22.04 - SIEM
 
 Ubuntu hosts Splunk Enterprise, listening on port `8000` for the web interface and port `9997` to receive forwarded logs from endpoints.
 
@@ -74,7 +75,7 @@ Ubuntu hosts Splunk Enterprise, listening on port `8000` for the web interface a
 
 ---
 
-## Splunk Universal Forwarder — Windows 10 Configuration
+## Splunk Universal Forwarder - Windows 10 Configuration
 
 I installed the Splunk Universal Forwarder on the Windows 10 victim machine and configured it to forward logs to the Ubuntu SIEM at `192.168.100.12:9997`.
 
@@ -82,19 +83,19 @@ I installed the Splunk Universal Forwarder on the Windows 10 victim machine and 
 
 ### inputs.conf
 
-The `inputs.conf` file tells the forwarder what to collect. I configured it to monitor the Windows Event Log channels most relevant to endpoint detection — Security, System, and the Sysmon operational channel.
+The `inputs.conf` file tells the forwarder what to collect. I configured it to monitor the Windows Event Log channels most relevant to endpoint detection: Security, System, and the Sysmon operational channel.
 
 ![inputs.conf](assets/splunk_inputs_conf.png)
 
 ### outputs.conf
 
-The `outputs.conf` file points the forwarder at the receiving indexer — in this case the Ubuntu SIEM on port `9997`.
+The `outputs.conf` file points the forwarder at the receiving indexer, in this case the Ubuntu SIEM on port `9997`.
 
 ![outputs.conf](assets/splunk_outputs_conf.png)
 
 ---
 
-## Splunk Enterprise — Native Kali Deployment
+## Splunk Enterprise - Native Kali Deployment
 
 In addition to the Ubuntu-based SIEM, I also deployed Splunk Enterprise directly on Kali Linux to practice the full installation workflow on a Linux host and test a second forwarding configuration.
 
@@ -114,12 +115,12 @@ After installation, I started Splunk using `sudo /opt/splunk/bin/splunk start`, 
 
 With the service running, I accessed the Splunk Web Interface at `http://kali:8000` using my admin credentials.
 
-![Splunk Web Login](assets/splunk_web_login_kali.png)
+![Splunk Web Login Kali](assets/splunk_web.png)
 ![Splunk Web Dashboard](assets/splunk_web_dashboard.png)
 
 ### Downloading and Installing the Universal Forwarder
 
-I downloaded the Splunk Universal Forwarder using `wget` — the 130MB `.tgz` package for Linux AMD64. After extracting and installing it, I accepted the license agreement and set up admin credentials.
+I downloaded the Splunk Universal Forwarder using `wget`, the 130MB `.tgz` package for Linux AMD64. After extracting and installing it, I accepted the license agreement and set up admin credentials.
 
 ![Downloading and Installing UF](assets/downloading_and_installing_UF.jpg)
 
@@ -131,7 +132,7 @@ I configured the forwarder to ship logs to the local Splunk Enterprise instance 
 
 ---
 
-## Wireshark — Interface Verification
+## Wireshark - Interface Verification
 
 Before running attacks, I verified that Wireshark could see traffic on the lab network interfaces.
 
@@ -139,7 +140,7 @@ Before running attacks, I verified that Wireshark could see traffic on the lab n
 
 ---
 
-## Attack Simulation — Nmap Reconnaissance
+## Attack Simulation - Nmap Reconnaissance
 
 With the lab fully operational, I launched a reconnaissance scan from the Kali attacker machine against the Windows 10 victim:
 
@@ -147,13 +148,13 @@ With the lab fully operational, I launched a reconnaissance scan from the Kali a
 nmap -Pn -p 445,3389,80 192.168.100.11
 ```
 
-I targeted ports 445 (SMB), 3389 (RDP), and 80 (HTTP) — three ports commonly probed during the initial access phase of an attack.
+I targeted ports 445 (SMB), 3389 (RDP), and 80 (HTTP), three ports commonly probed during the initial access phase of an attack.
 
 ![Kali Nmap Attack](assets/kali_nmap_attack.png)
 
 ---
 
-## Detection in Splunk — Windows 10 Endpoint
+## Detection in Splunk - Windows 10 Endpoint
 
 ### Querying the Events
 
@@ -161,7 +162,7 @@ After the scan, I ran `index=main` in the Search & Reporting app on the Ubuntu S
 
 ![Splunk Search Query](assets/splunk_search_query.png)
 
-### Results — 1,435 Events Indexed
+### Results - 1,435 Events Indexed
 
 The query returned **1,435 events** from the Windows 10 endpoint, confirming the UF was shipping logs successfully.
 
@@ -171,34 +172,34 @@ The query returned **1,435 events** from the Windows 10 endpoint, confirming the
 
 Three Sysmon event codes confirmed the nmap scan was captured end to end:
 
-**EventCode 1 — Process Creation**
+**EventCode 1 - Process Creation**
 Sysmon recorded the process that initiated the scan activity on the victim host.
 
 ![Sysmon EventCode 1](assets/sysmon_eventcode_1.png)
 
-**EventCode 3 — Network Connection**
+**EventCode 3 - Network Connection**
 Outbound network connection events showed the specific ports being probed, with source and destination IPs logged.
 
 ![Sysmon EventCode 3](assets/sysmon_eventcode_3.png)
 
-**EventCode 10 — Process Access**
+**EventCode 10 - Process Access**
 Process access events showed inter-process activity triggered as a result of the scan.
 
 ![Sysmon EventCode 10](assets/sysmon_eventcode_10.png)
 
 ---
 
-## Real-Time Logs — Kali Native Deployment
+## Real-Time Logs - Kali Native Deployment
 
 On the Kali-native Splunk instance, running `index=main` returned **20,089 events** from the `/var/log` directory over a 24-hour window, across 10 sources and 9 source types. This confirmed the Universal Forwarder was actively shipping live system logs into the local Splunk Enterprise instance.
 
 ![Real-Time Logs from Kali](assets/real_time_logs_from_kali.jpg)
 
-The logs included Xorg display server events, VirtualBox integration messages, and kernel-level activity — all the background telemetry a real analyst learns to distinguish from actual security-relevant events.
+The logs included Xorg display server events, VirtualBox integration messages, and kernel-level activity, all the background telemetry a real analyst learns to distinguish from actual security-relevant events.
 
 ---
 
-## Snapshots — Lab State Preservation
+## Snapshots - Lab State Preservation
 
 After verifying everything worked, I took snapshots of all three VMs to preserve the clean baseline state. This means I can revert after any destructive test and return to a known-good configuration.
 
@@ -208,9 +209,9 @@ After verifying everything worked, I took snapshots of all three VMs to preserve
 
 ---
 
-## Splunk Cloud — Additional Exposure
+## Splunk Cloud - Additional Exposure
 
-Beyond the on-premise lab setup, I also created a Splunk Cloud account to familiarise myself with the managed platform. Understanding both deployment models — self-hosted Enterprise and cloud-managed — reflects how organisations actually operate Splunk at scale.
+Beyond the on-premise lab setup, I also created a Splunk Cloud account to familiarise myself with the managed platform. Understanding both deployment models, self-hosted Enterprise and cloud-managed, reflects how organisations actually operate Splunk at scale.
 
 ![Accessing Splunk Cloud](assets/Accessing_splunk_cloud.png)
 
@@ -229,11 +230,9 @@ Running this lab gave me practical experience across the full SOC toolchain:
 
 ---
 
----
-
 ## Future Additions
 
-- `configs/` folder — `sysmonconfig.xml`, `inputs.conf`, `outputs.conf`
+- `configs/` folder with `sysmonconfig.xml`, `inputs.conf`, `outputs.conf`
 - Suricata IDS rules and alert configuration
 - Cowrie honeypot setup and log integration
 - Custom SPL detection rules for common attack patterns
