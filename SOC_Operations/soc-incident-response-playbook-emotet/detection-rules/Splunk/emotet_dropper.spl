@@ -1,0 +1,23 @@
+| title: Suspicious EXE Dropped in System32
+| description: Detects process creation events where an executable is written to the
+|              Windows System32 directory. Emotet and similar malware families use
+|              this technique to achieve persistence with elevated privileges.
+| mitre_attack: T1547 - Boot/Logon Autostart Execution
+| event_id: 4688 (Process Creation)
+| severity: HIGH
+| author: Ejoke John Oghenekewe
+| date: 2024-01-01
+| references:
+|   - https://attack.mitre.org/techniques/T1547/
+|   - https://www.cisa.gov/emotet
+
+index=windows EventCode=4688
+| search CommandLine="*System32*" AND CommandLine="*.exe*"
+| eval threat=if(match(CommandLine, "emotet|mimikatz|cobalt|meterpreter"), "HIGH", "MEDIUM")
+| eval risk_score=case(
+    threat="HIGH", 90,
+    threat="MEDIUM", 60,
+    true(), 30
+  )
+| table _time, ComputerName, ParentProcessName, CommandLine, threat, risk_score
+| sort -risk_score, -_time
