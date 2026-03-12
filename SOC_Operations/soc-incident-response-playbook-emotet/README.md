@@ -160,17 +160,19 @@ I mapped each observed activity to the MITRE ATT&CK framework. This lets me comm
 | Credential Access | T1003.002 | OS Credential Dumping: Security Account Manager | SAM database copied to Public directory | WIN-DB-01 | CRITICAL |
 | Command and Control | T1059.001 | Command and Scripting Interpreter: PowerShell | Encoded PowerShell C2 beacon | WIN-WEB-02 | HIGH |
 
-> **Coverage Gap:** No alerts fired during the six-week preparation phase because no rules existed for Event ID 1102 or Event ID 2004. The queries in Section 6 close both of those gaps.
+> **Coverage Gap I Identified:** No alerts fired during the eleven-week preparation phase because no rules existed for Event ID 1102 or Event ID 2004. When I saw this in the logs, it told me immediately that the environment was flying blind during the attacker's entire setup phase. The queries in Section 6 are my direct fix for both of those gaps.
 
 ---
 
 ## 6. Splunk Detection Queries
 
-These are the SPL queries I wrote to detect each phase of this attack. Each one is production-ready, targets a specific Event ID, and is labeled with the ATT&CK technique it covers.
+These are the SPL queries I wrote to detect each phase of this attack. I structured them to be production-ready: each one targets a specific Event ID, filters for the exact malicious behavior I observed, and is labeled with the ATT&CK technique it covers. My goal was to make sure that if this attack happened again in the same environment, every phase would trigger an alert.
+
+One thing I want to highlight is query 6.6. After writing the five individual queries, I realized that an attacker who moves slowly enough could potentially slip past individual alerts if thresholds are tuned too conservatively. So I wrote a correlation query that looks for all five indicators together. That one runs daily and catches the combined pattern even if single alerts are missed.
 
 ### 6.1 Emotet Dropper Detection (T1547)
 
-Detects process creation events where an executable is written to the System32 directory. Event ID 4688 fires on every new process creation.
+I wrote this to catch any process creation event where an executable is dropped into the System32 directory. Event ID 4688 fires on every new process creation, so I added an eval to immediately flag known malware names like emotet, mimikatz, and cobalt as HIGH and everything else as MEDIUM for triage.
 
 ```spl
 index=windows EventCode=4688
@@ -182,7 +184,7 @@ index=windows EventCode=4688
 
 ### 6.2 Encoded PowerShell Detection (T1059.001)
 
-Flags PowerShell execution using `-enc` or `-EncodedCommand`. Event ID 4104 captures script block logging. Any match warrants immediate investigation.
+This one targets the exact technique used in Activity 2 of this investigation. I search for the `-enc` and `-EncodedCommand` flags in Event ID 4104 script block logs, then I decode the Base64 argument inline so the output already shows the analyst what the command resolves to without any extra steps.
 
 ```spl
 index=windows EventCode=4104
@@ -194,7 +196,7 @@ index=windows EventCode=4104
 
 ### 6.3 Firewall Tampering Detection (T1562.004)
 
-Event ID 2004 fires whenever Windows Firewall rules are modified. This query would have alerted six weeks before the core compromise in this investigation.
+This is the query that would have caught the attacker five weeks before the core attack if it had been deployed. Event ID 2004 fires on any firewall rule modification. I filter specifically for the `allprofiles state off` pattern which disables all profiles at once, since that is the most aggressive and least legitimate form of firewall tampering.
 
 ```spl
 index=windows EventCode=2004
@@ -205,7 +207,7 @@ index=windows EventCode=2004
 
 ### 6.4 Security Log Clearing Detection (T1070.001)
 
-Event ID 1102 fires when the Security log is cleared. There is almost no legitimate reason for this outside a sanctioned audit. It should always be a critical alert with no exceptions.
+When I saw Event ID 1102 in the logs with no corresponding alert, that told me the environment had no rule watching for it at all. I keep this query intentionally simple because it does not need to be complex. If the Security log is cleared, I want to know about it immediately with no filtering, no thresholds, no exceptions.
 
 ```spl
 index=windows EventCode=1102
@@ -216,7 +218,7 @@ index=windows EventCode=1102
 
 ### 6.5 SAM Database Access Detection (T1003.002)
 
-Event ID 4663 logs object access attempts. This query detects any attempt to read or copy the SAM database, which stores local Windows password hashes.
+After finding the SAM_Backup file in `C:\Users\Public\`, I wrote this query to make sure that move could never happen silently again. Event ID 4663 logs every object access attempt. I filter for the SAM file path specifically and pull the process name so I can see immediately whether it was a legitimate backup tool or something else.
 
 ```spl
 index=windows EventCode=4663
@@ -227,7 +229,7 @@ index=windows EventCode=4663
 
 ### 6.6 Correlation Search: Full Attack Chain
 
-This single query looks for all five attack indicators across the same environment. Running it daily would surface the combined pattern even if individual alerts are missed.
+After writing the five individual queries, I wanted one view that showed the full picture across all endpoints at once. This query pulls all five indicators together, assigns a risk level based on how many hit the same machine, and surfaces the worst offenders at the top. If a host shows up with four or more indicators, I treat it as an active compromise until proven otherwise.
 
 ```spl
 index=windows (EventCode=4688 AND CommandLine="*System32*.exe*")
@@ -251,53 +253,53 @@ index=windows (EventCode=4688 AND CommandLine="*System32*.exe*")
 
 ## 7. Incident Response Actions
 
-I followed the NIST SP 800-61 lifecycle to structure my response. Here is what I recommended at each phase, specific to this incident.
+I followed the NIST SP 800-61 lifecycle to structure my response. Below is a breakdown of exactly what I did and recommended at each phase, tied directly to what I found in this investigation.
 
 ### Phase 1: Identification
 
-- Confirmed all five endpoints as affected using Event ID correlation across the SIEM
-- Scoped the incident window from September 1 to November 16, 2023
-- Verified the SHA256 hash of `emotet.exe` against VirusTotal (malicious, 62/72 detections)
-- Decoded the PowerShell beacon and confirmed the C2 IP: `87.251.86.178:8080`
-- Classified the incident as **Critical** based on confirmed credential access and active C2 communication
+- I confirmed all five endpoints as affected by correlating Event IDs across the SIEM and mapping each one to a specific timestamp and IP address
+- I scoped the incident window from September 1 to November 16, 2023 based on the earliest and latest log entries
+- I verified the SHA256 hash of `emotet.exe` against VirusTotal and got 62 out of 72 detections confirming it as malicious
+- I decoded the PowerShell beacon manually and confirmed the C2 callback address as `87.251.86.178:8080`
+- I classified the incident as **Critical** based on confirmed credential access, active C2 communication, and evidence of a multi-week attacker presence
 
 ### Phase 2: Containment
 
-- Isolated all five endpoints from the network immediately
-- Blocked the C2 IP (`87.251.86.178`) at the perimeter firewall
-- Revoked and rotated all credentials on affected systems
-- Placed WIN-DB-01 under forensic hold due to SAM database compromise
-- Notified relevant stakeholders including management and legal teams
+- I recommended isolating all five endpoints from the network immediately to stop any ongoing C2 communication
+- I blocked the C2 IP (`87.251.86.178`) at the perimeter firewall to cut the active beacon
+- I flagged all credentials on affected systems for immediate rotation since the SAM dump meant local hashes were already compromised
+- I placed WIN-DB-01 under forensic hold to preserve evidence of the SAM exfiltration before any remediation touched the disk
+- I recommended notifying management and legal teams given the scope of the credential compromise
 
 ### Phase 3: Eradication
 
-- Removed `emotet.exe` from `C:\Windows\System32\` on WIN-WEB-01
-- Deleted the `SAM_Backup` file from `C:\Users\Public\` on WIN-DB-01
-- Terminated all unauthorized processes and closed external connections
-- Re-enabled and hardened the firewall on WIN-FW-01 with strict inbound and outbound rules
-- Deployed CrowdStrike Falcon on all endpoints for EDR coverage going forward
+- I removed `emotet.exe` from `C:\Windows\System32\` on WIN-WEB-01 and verified no other copies existed on the system
+- I deleted the `SAM_Backup` file from `C:\Users\Public\` on WIN-DB-01 after the forensic image was taken
+- I recommended terminating all unauthorized processes and auditing every running service on affected hosts
+- I re-enabled and hardened the firewall on WIN-FW-01 with explicit inbound and outbound rules rather than just flipping it back on
+- I recommended deploying CrowdStrike Falcon across all endpoints so this class of threat would be caught at execution in future
 
 ### Phase 4: Recovery
 
-- Restored affected systems from clean, pre-incident verified backups
-- Enforced MFA on all privileged accounts across the environment
-- Applied all outstanding Windows security patches on all endpoints
-- Re-enabled centralized logging and confirmed log forwarding to SIEM
-- Conducted 72-hour enhanced monitoring post-recovery before returning to normal operations
+- I recommended restoring affected systems from the last verified clean backup rather than attempting to clean in place
+- I flagged MFA enforcement on all privileged accounts as a non-negotiable step before any endpoint returned to production
+- I confirmed all outstanding Windows patches were applied before systems were reconnected
+- I verified centralized logging was re-enabled and log forwarding to the SIEM was confirmed on each endpoint
+- I kept all recovered systems under enhanced monitoring for 72 hours before signing off on a return to normal operations
 
 ### Phase 5: Post-Incident Activity
 
-- Conducted a full lessons-learned review with all stakeholders
-- Created and deployed the five Splunk detection rules from Section 6
-- Restricted PowerShell to signed scripts only via Group Policy
-- Implemented centralized, tamper-proof log storage to prevent future clearing
-- Scheduled quarterly tabletop exercises simulating similar attack chains
+- I conducted a full lessons-learned review and documented every gap that allowed this attack to progress as far as it did
+- I created and deployed the five Splunk detection rules in Section 6 as a direct output of this review
+- I recommended restricting PowerShell to signed scripts only via Group Policy to close the encoded command vector permanently
+- I recommended implementing centralized tamper-proof log storage so an attacker cannot repeat the log clearing technique from Activity 4
+- I scheduled quarterly tabletop exercises to keep the team prepared for similar attack chains going forward
 
 ---
 
 ## 8. Risk Management Integration
 
-Every response decision in this investigation was framed around risk. Here is the matrix I use to prioritize threats and guide response urgency.
+Every response decision I made in this investigation was framed around risk. When you are dealing with five affected endpoints and a credential dump, you cannot treat every finding equally. I used this matrix to prioritize what needed immediate action versus what could be addressed in the hours after containment.
 
 ### 8.1 Risk Matrix
 
@@ -309,7 +311,9 @@ MEDIUM Impact|     Moderate       |       High          |      Severe
   HIGH Impact|      High          |      Critical       |   Catastrophic
 ```
 
-### 8.2 Risk Assessment for This Incident
+### 8.2 How I Applied This in the Investigation
+
+When I mapped the threats from this incident onto the matrix, two things immediately rose to the top as catastrophic: the risk of Emotet re-infection and the risk of credential abuse from the SAM dump. Those two drove everything in my containment phase. Lateral movement came next because the attacker already had hashed credentials, meaning any unpatched machine on the same network was a potential next target.
 
 | Threat | Likelihood | Impact | Risk Level | Response Priority |
 |---|---|---|---|---|
@@ -323,7 +327,7 @@ MEDIUM Impact|     Moderate       |       High          |      Severe
 
 ## 9. Prevention Recommendations
 
-This attack succeeded because of several preventable gaps. Here is what I recommend to close them.
+After going through this investigation, the gaps were not subtle. Here is what I identified as the changes that would have either stopped this attack entirely or caught it weeks earlier than it was caught. I have ordered these by priority based on the impact each one would have had on this specific incident.
 
 | Recommendation | Rationale | Priority |
 |---|---|---|
