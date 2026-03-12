@@ -115,4 +115,6 @@
 
 ---
 
-*For full investigation narrative and context, see the main [README](../README.md)*
+---
+
+*This file is the action-only response reference. For the full investigation narrative, ATT&CK mapping, Splunk queries, and context, see the main [README.md](../README.md) in the root of this repository.*
