@@ -1,0 +1,38 @@
+| title: Full Emotet Attack Chain Correlation Search
+| description: A single correlation query that searches for all five attack indicators
+|              from the Emotet investigation across the same environment. Running this
+|              daily surfaces the combined attack pattern even if individual alerts are
+|              missed or suppressed. Any endpoint appearing in multiple indicator
+|              categories should be treated as actively compromised.
+| mitre_attack: Multiple - T1547, T1059.001, T1562.004, T1070.001, T1003.002
+| severity: CRITICAL if 3+ indicators on same host
+| author: Ejoke John Oghenekewe
+| date: 2024-01-01
+| usage: Run as a scheduled search daily. Alert if any ComputerName has count > 2.
+| references:
+|   - https://attack.mitre.org/groups/G0010/ (Emotet threat group)
+
+index=windows (EventCode=4688 AND CommandLine="*System32*.exe*")
+    OR (EventCode=4104 AND ScriptBlockText="*-enc*")
+    OR (EventCode=2004 AND RuleAttr="*allprofiles*off*")
+    OR (EventCode=1102)
+    OR (EventCode=4663 AND ObjectName="*\\config\\SAM*")
+| eval indicator=case(
+    EventCode=4688, "T1547 - Suspicious EXE in System32",
+    EventCode=4104, "T1059.001 - Encoded PowerShell",
+    EventCode=2004, "T1562.004 - Firewall Disabled",
+    EventCode=1102, "T1070.001 - Security Log Cleared",
+    EventCode=4663, "T1003.002 - SAM Access Attempt"
+  )
+| stats count, values(indicator) as indicators, earliest(_time) as first_seen,
+    latest(_time) as last_seen by ComputerName
+| eval risk_level=case(
+    count >= 4, "CRITICAL - Active Compromise",
+    count == 3, "HIGH - Multiple IOCs Detected",
+    count == 2, "MEDIUM - Suspicious Activity",
+    count == 1, "LOW - Single Indicator"
+  )
+| eval first_seen=strftime(first_seen, "%Y-%m-%d %H:%M:%S")
+| eval last_seen=strftime(last_seen, "%Y-%m-%d %H:%M:%S")
+| table ComputerName, count, risk_level, indicators, first_seen, last_seen
+| sort -count
