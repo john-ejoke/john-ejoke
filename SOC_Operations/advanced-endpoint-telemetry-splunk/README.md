@@ -4,7 +4,6 @@
 
 **Author:** Ejoke John | Cybersecurity Analyst
 **LinkedIn:** [linkedin.com/in/john-ejoke](https://www.linkedin.com/in/john-ejoke/)
-**Date:** August 2025
 
 ---
 
