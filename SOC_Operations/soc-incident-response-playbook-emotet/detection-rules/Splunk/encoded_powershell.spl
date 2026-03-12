@@ -1,0 +1,20 @@
+| title: Encoded PowerShell Command Execution
+| description: Detects PowerShell execution using the -enc or -EncodedCommand flag.
+|              Attackers encode commands in Base64 to bypass basic string-based
+|              detection and obscure C2 callback URLs or payloads.
+| mitre_attack: T1059.001 - Command and Scripting Interpreter: PowerShell
+| event_id: 4104 (PowerShell Script Block Logging)
+| severity: HIGH
+| author: Ejoke John Oghenekewe
+| date: 2024-01-01
+| prerequisites: PowerShell Script Block Logging must be enabled via Group Policy
+| references:
+|   - https://attack.mitre.org/techniques/T1059/001/
+
+index=windows EventCode=4104
+| search ScriptBlockText="*-enc*" OR ScriptBlockText="*-EncodedCommand*"
+    OR ScriptBlockText="*-e *" OR ScriptBlockText="*-ec *"
+| eval decoded=base64decode(mvindex(split(ScriptBlockText, " "), -1))
+| eval suspicious=if(match(decoded, "http|https|iex|invoke|downloadstring|webclient"), "YES", "REVIEW")
+| table _time, ComputerName, UserID, ScriptBlockText, decoded, suspicious
+| sort -_time
