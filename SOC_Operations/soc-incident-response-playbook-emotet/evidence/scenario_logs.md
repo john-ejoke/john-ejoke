@@ -10,7 +10,7 @@ evidence base for the entire playbook.
 
 ```
 Detection Date : 2023-11-16
-Time           : 02:00:00 AM
+Time           : 12:00:00 AM
 Device         : WIN-WEB-01
 IP Address     : 192.168.20.10
 Event ID       : 4688 (Process Creation)
@@ -93,7 +93,7 @@ Parent Process : cmd.exe
 Process Owner  : SYSTEM
 ```
 
-**Analysis:** This is the earliest recorded malicious activity in the timeline, occurring ten weeks
+**Analysis:** This is the earliest recorded malicious activity in the timeline, occurring eleven weeks
 before the November 16 execution phase. The attacker cleared the Security event log to destroy
 evidence of earlier activity. Running as SYSTEM confirms deep access was already established well
 before the visible attack began. This is T1070.001 (Indicator Removal).
