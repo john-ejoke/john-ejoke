@@ -1,0 +1,24 @@
+| title: SAM Database Access or Copy Attempt
+| description: Detects any attempt to access or copy the Windows SAM database file,
+|              which stores local account password hashes. A successful SAM dump
+|              gives an attacker all local credentials, enabling pass-the-hash
+|              attacks and privilege escalation across the network.
+| mitre_attack: T1003.002 - OS Credential Dumping: Security Account Manager
+| event_id: 4663 (Object Access Attempt)
+| severity: CRITICAL
+| author: Ejoke John Oghenekewe
+| date: 2024-01-01
+| prerequisites: Object Access auditing must be enabled for the SAM file path.
+| notes: In this investigation the SAM file was copied to C:\Users\Public\SAM_Backup
+|        giving the attacker portable access to all local password hashes.
+|        Any access to this file outside of a sanctioned backup tool should be
+|        treated as a confirmed credential theft attempt.
+| references:
+|   - https://attack.mitre.org/techniques/T1003/002/
+
+index=windows EventCode=4663
+| search ObjectName="*\\config\\SAM*"
+| eval alert="CRITICAL - SAM Database Access Detected"
+| eval risk="Credential theft likely. Assume all local account hashes are compromised."
+| table _time, ComputerName, SubjectUserName, ObjectName, AccessMask, ProcessName, alert, risk
+| sort -_time
