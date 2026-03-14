@@ -43,7 +43,7 @@ I deployed two distinct Security Groups, each with a specific role and a specifi
 
 ### PrestaShop-Web-SG: The Public Perimeter
 
-I created this Security Group to act as the perimeter firewall for the web tier. It has exactly two inbound rules and nothing else.
+I created this Security Group to act as the perimeter firewall for the web tier. It has exactly two inbound rules and nothing else
 
 The first thing I configured was the name and description. Clear naming is part of governance. When an auditor or teammate looks at this security group six months from now, they should be able to understand its purpose from the name alone.
 
