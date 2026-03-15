@@ -313,8 +313,7 @@ index=main OR index=main_logs | stats count by host
 The Wazuh Manager is the enforcement engine of this lab. It provides EDR capabilities, compliance scanning, file integrity monitoring, and the detection rules that feed into the SOAR automation. I installed it using the official one-line script:
 
 ```bash
-curl -sO https://packages.wazuh.com/4.9/wazuh-install.sh && \
-sudo bash wazuh-install.sh -a
+curl -sO https://packages.wazuh.com/4.9/wazuh-install.sh && sudo bash wazuh-install.sh -a
 ```
 
 ![Wazuh 4.9.2 installation in progress](screenshots/31-wazuh-installation-terminal.png)
