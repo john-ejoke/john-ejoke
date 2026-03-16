@@ -79,18 +79,8 @@ One of the first things I do in any investigation is build a timeline. It tells 
 
 ### 3.1 Visual Timeline
 
-```
-SEPT 1, 2023        OCT 10, 2023         NOV 16, 2023
-     |                    |               |         |         |
-     v                    v               v         v         v
-[Logs Cleared]    [Firewall Disabled]  [Emotet   [C2       [SAM DB
- WIN-LOG-01         WIN-FW-01           Dropped]  Beacon]   Dumped]
- Event 1102         Event 2004          12:00AM   02:05AM   03:00AM
-                                        WEB-01    WEB-02    DB-01
 
-|<---------- 6 weeks: silent preparation ---------->|<-- 3hr execution -->|
-         DEFENSE EVASION                                  CORE ATTACK
-```
+![Cybersecurity Incident Timeline](cybersecurity_incident_timeline.PNG)
 
 ### 3.2 Timeline Table
 
