@@ -79,18 +79,17 @@ One of the first things I do in any investigation is build a timeline. It tells 
 
 ### 3.1 Visual Timeline
 
-
-![Cybersecurity Incident Timeline](cybersecurity_incident_timeline.PNG)
+![Incident Timeline](assets/cybersecurity_incident_timeline.png)
 
 ### 3.2 Timeline Table
 
 | Timestamp | Endpoint | IP Address | Event ID | Activity | ATT&CK Phase |
 |---|---|---|---|---|---|
-| 2023-09-01 04:00 PM | WIN-LOG-01 | 192.168.20.30 | 1102 | Security logs cleared via `wevtutil cl Security` | Defense Evasion (prep) |
-| 2023-10-10 01:12 PM | WIN-FW-01 | 192.168.20.1 | 2004 | Firewall disabled via `netsh advfirewall set allprofiles state off` | Defense Evasion (prep) |
-| 2023-11-16 12:00 AM | WIN-WEB-01 | 192.168.20.10 | 4688 | `emotet.exe` dropped to `C:\Windows\System32\` | Execution / Persistence |
-| 2023-11-16 02:05 AM | WIN-WEB-02 | 192.168.20.11 | 4104 | Encoded PowerShell beacon fired to external C2 | Command and Control |
-| 2023-11-16 03:00 AM | WIN-DB-01 | 192.168.20.40 | 4663 | SAM database copied to `C:\Users\Public\SAM_Backup` | Credential Access |
+| 2023-09-01 04:00 PM | WIN-LOG-01    | 192.168.20.30 | 1102 | Security logs cleared via `wevtutil cl Security` | Defense Evasion (prep) |
+| 2023-10-10 01:12 PM | WIN-FW-01     | 192.168.20.1 | 2004  | Firewall disabled via `netsh advfirewall set allprofiles state off` | Defense Evasion (prep) |
+| 2023-11-16 12:00 AM | WIN-WEB-01    | 192.168.20.10 | 4688 | `emotet.exe` dropped to `C:\Windows\System32\` | Execution / Persistence |
+| 2023-11-16 02:05 AM | WIN-WEB-02    | 192.168.20.11 | 4104 | Encoded PowerShell beacon fired to external C2 | Command and Control |
+| 2023-11-16 03:00 AM | WIN-DB-01     | 192.168.20.40 | 4663 | SAM database copied to `C:\Users\Public\SAM_Backup` | Credential Access |
 
 ---
 
