@@ -35,7 +35,7 @@ This is that pipeline.
 
 ## Architecture Overview
 
-![SOC Architecture](screenshots/00-soc-architecture.png) 
+![SOC Architecture](screenshots/00-SOC-architecture.png) 
 
 ```
 
