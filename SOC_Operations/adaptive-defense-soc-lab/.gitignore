@@ -1,1 +1,55 @@
 
+# ─── Terraform ───────────────────────────────────────────
+# Local .terraform directory (provider binaries, modules)
+.terraform/
+.terraform.lock.hcl
+
+# Terraform state files — NEVER commit these (contain secrets)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform plan output files
+*.tfplan
+*.plan
+
+# Terraform variable files (may contain secrets)
+*.tfvars
+*.tfvars.json
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ─── SSH Keys — CRITICAL ─────────────────────────────────
+# Never upload private keys to GitHub
+*.pem
+*.key
+soc_key
+soc_key_v2
+soc_key_v2.pem
+!*.pem.pub
+
+# ─── AWS Credentials ─────────────────────────────────────
+.aws/
+credentials
+aws_credentials
+
+# ─── OS & Editor ─────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── Logs ────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Sensitive config ────────────────────────────────────
+secrets/
+.env
+.env.*
