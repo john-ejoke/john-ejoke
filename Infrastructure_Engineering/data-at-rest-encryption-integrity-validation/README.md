@@ -9,25 +9,6 @@
 
 ---
 
-## Repository Structure Context
-
-```
-portfolio/
-  infrastructure-engineering/
-    aws-2tier-ecommerce/
-    syn-flood-cybersecurity-lab/
-    data-at-rest-encryption-lab/       <-- You are here
-      README.md
-      screenshots/
-        01_plaintext_initialization.png
-        02_baseline_hash_sha256.png
-        03_aes256_encryption.png
-        04_ciphertext_validation.png
-        05_plaintext_erasure.png
-        06_decryption_recovery.png
-        07_integrity_hash_match.png
-```
-
 ---
 
 ## What This Project Is About
