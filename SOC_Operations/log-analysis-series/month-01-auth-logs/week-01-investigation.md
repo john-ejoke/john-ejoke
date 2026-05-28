@@ -1,5 +1,5 @@
 
-# Week 01 — SSH Brute Force Detection and Analysis
+# Week 01 : SSH Brute Force Detection and Analysis
 ### SOC Log Analysis Series | Month 1 | Authentication Logs
 
 **Date:** 27 May 2026
