@@ -29,7 +29,7 @@ tail -f /var/log/auth.log        Investigation commands           Hydra brute fo
 Watching logs live               grep, wc, awk analysis           Generating the attack
 ```
 
-![Three Windows Ready](screenshots/03_three_windows_ready.PNG)
+![Three Windows Ready](screenshots/03_three_windows_ready.png)
 
 ---
 
