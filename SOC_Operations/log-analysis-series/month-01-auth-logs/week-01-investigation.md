@@ -29,7 +29,7 @@ tail -f /var/log/auth.log        Investigation commands           Hydra brute fo
 Watching logs live               grep, wc, awk analysis           Generating the attack
 ```
 
-![test](month-01-auth-logs/screenshots/01_clean_baseline.png)
+![test](./screenshots/01_clean_baseline.png)
 ---
 
 ## Step 1: Establishing the Baseline
