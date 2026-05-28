@@ -118,7 +118,7 @@ hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://192.168.80.20 -t 4 -V
 ![Hydra Running Attack Live](screenshots/05_hydra_running_attack_live.png)
 
 **What happened:**
-The moment Hydra started, Window 1 began flooding with failed password entries in real time. This screenshot captures both sides simultaneously. The attack generating on Window 3 (bottom). The defence logging it on Window 1 (top). This is the closest thing to watching a live attack from a defender position.
+The moment Hydra started, Window 1 began flooding with failed password entries in real time. This screenshot captures both sides simultaneously. The attack generating on Window 3 (bottom). The defence logging it on Window 1 (top). This simulation demonstrates how defenders can observe and investigate brute force activity in real time using native Linux logging.
 
 ---
 
@@ -248,14 +248,16 @@ High confidence SSH brute force attack from 192.168.80.40 targeting root account
 
 ```
 RULE: SSH Brute Force Detection
-IF:   count(Failed password) from same source IP > 10
-      WITHIN 60 seconds
-THEN: ALERT - SSH Brute Force Detected
-      Severity: MEDIUM
-      Action: Flag source IP for review
-              Notify SOC analyst on duty
-```
 
+IF:
+  count("Failed password") >= 10
+  from same source IP
+  within 60 seconds
+
+THEN:
+  Generate Medium Severity Alert
+  Tag event as Potential SSH Brute Force
+  Trigger analyst investigation workflow
 ---
 
 ## Recommended Response Actions
@@ -267,7 +269,7 @@ THEN: ALERT - SSH Brute Force Detected
 | Short-term | Install and configure Fail2ban |
 | Short-term | Disable SSH password authentication, enforce key-based only |
 | Long-term | Restrict SSH to known IP ranges in firewall rules |
-| Long-term | Move SSH to non-standard port to reduce automated scan noise |
+| Long-term | Move SSH to a non-standard port to reduce automated scanning noise, while recognizing this is not a replacement for proper authentication hardening. |
 
 ---
 
@@ -306,6 +308,17 @@ Targeting root is the first thing automated tools do. Disable direct root SSH lo
 | 07_source_ip_count.png | All 80 attempts from single IP: 192.168.80.40. |
 | 07_three_investigation_commands.png | Accepted password check. Root never compromised. |
 
+---
+## Skills Demonstrated
+
+- Linux log analysis
+- SSH authentication investigation
+- Brute force attack detection
+- Bash command-line analysis
+- Threat detection and triage
+- MITRE ATT&CK mapping
+- Incident documentation
+- Security investigation workflow
 ---
 
 *John Ejoke Oghenekewe | Cybersecurity Analyst*
