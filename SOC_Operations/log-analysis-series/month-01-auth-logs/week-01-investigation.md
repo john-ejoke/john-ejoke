@@ -10,6 +10,8 @@
 **Log Source:** /var/log/auth.log
 
 ---
+![SSH Brute Force Detection Thumbnail](./screenshots/00_ssh_bruteforce_detection_thumbnail.png)
+---
 
 ## What This Investigation Is About
 
