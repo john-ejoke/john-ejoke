@@ -120,10 +120,6 @@ hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://192.168.80.20 -t 4 -V
 **What happened:**
 The moment Hydra started, Window 1 began flooding with failed password entries in real time. This screenshot captures both sides simultaneously. The attack generating on Window 3 (bottom). The defence logging it on Window 1 (top). This is the closest thing to watching a live attack from a defender position.
 
-![Brute Force Attack Hydra](screenshots/brute_force_attack.png)
-
-![Failed Password Log](screenshots/failed_password.png)
-
 ---
 
 ## Step 6: Investigation Commands
